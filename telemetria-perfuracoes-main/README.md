@@ -1,1 +1,0 @@
-# telemetria-perfuracoes

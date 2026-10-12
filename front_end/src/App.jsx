@@ -5,10 +5,12 @@ import viteLogo from './assets/vite.svg'
 import './App.css'
 
 function App() {
-
   return (
-  
-  )
+    <div className="App">
+      <h1>DrillTrack</h1>
+      <p>Da Sonda à Decisão</p>
+    </div>
+  );
 }
 
-export default App
+export default App;
