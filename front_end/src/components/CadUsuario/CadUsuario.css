@@ -1,0 +1,127 @@
+:root {
+  --cor-fundo: #11181e;
+  --cor-painel: #1b2229;
+  --cor-campo: #1b2228;
+  --cor-borda: #9aa4ad;
+  --cor-texto: #fff;
+  --cor-primaria: #b30e0e;
+  --cor-primaria-hover: #cc1212;
+  --cor-erro: #ff6b6b;
+  --cor-sucesso: #5fd38d;
+  --fonte: "Poppins", "Segoe UI", sans-serif;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: var(--cor-fundo);
+}
+
+.cadastro,
+.cadastro * {
+  box-sizing: border-box;
+}
+
+.cadastro {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte);
+  text-align: left;
+}
+
+.cadastro-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  padding: 30px 40px;
+  background: var(--cor-painel);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.linha {
+  display: flex;
+  gap: 16px;
+}
+
+.campo label {
+  font-size: 12px;
+  color: var(--cor-texto);
+}
+
+.campo input,
+.campo select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--cor-texto);
+  background: var(--cor-campo);
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  outline: none;
+}
+
+.campo input:focus,
+.campo select:focus {
+  border-color: var(--cor-texto);
+}
+
+.campo select option {
+  background: var(--cor-campo);
+}
+
+.mensagem {
+  margin: 0;
+  font-size: 12px;
+}
+
+.mensagem.erro {
+  color: var(--cor-erro);
+}
+
+.mensagem.sucesso {
+  color: var(--cor-sucesso);
+}
+
+.botao {
+  height: 44px;
+  margin-top: 16px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--cor-texto);
+  background: var(--cor-primaria);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.botao:hover {
+  background: var(--cor-primaria-hover);
+}
+
+.botao:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

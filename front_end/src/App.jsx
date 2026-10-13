@@ -1,14 +1,11 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
 import './App.css'
+import CadUsuario from './components/CadUsuario/CadUsuario'
 
 function App() {
   return (
-    <div className="App">
-      <h1>DrillTrack</h1>
-      <p>Da Sonda à Decisão</p>
+    <div>
+      <CadUsuario/>
     </div>
   );
 }
