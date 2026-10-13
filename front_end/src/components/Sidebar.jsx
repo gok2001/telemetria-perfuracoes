@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import './Sidebar.css';
+import logo from '../assets/logos/logo.png';
 
 const itensMenu = [
   { nome: 'Dashboard', icone: LayoutDashboard },
@@ -78,15 +79,15 @@ function Sidebar({
           <Menu size={19} />
         </button>
 
+        
         <div className="sidebar__marca d-flex flex-column align-items-center justify-content-center">
-          <div className="sidebar__logo">DrillTrack</div>
-
-          {mostrarRotulos && (
-            <span className="sidebar__slogan">
-              Da Sonda à Decisão
-            </span>
-          )}
+            <img
+                src={logo}
+                alt="DrillTrack — Da Sonda à Decisão"
+                className="sidebar__logo-img"
+            />
         </div>
+
 
         <nav
           className="sidebar__navegacao d-flex flex-column gap-1"

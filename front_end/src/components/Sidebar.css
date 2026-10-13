@@ -40,19 +40,23 @@
 }
 
 .sidebar__marca {
-  min-height: 105px;
-  gap: 5px;
+  flex: 0 0 165px;
+  width: 100%;
+  min-height: 165px;
+  padding: 8px 4px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.sidebar__logo {
-  color: #ffffff;
-  font-size: 21px;
-  font-weight: 800;
-  letter-spacing: -0.8px;
-}
 
-.sidebar__logo::first-letter {
-  color: var(--sidebar-red);
+.sidebar__logo-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: 145px;
+  object-fit: contain;
+  object-position: center;
 }
 
 .sidebar__slogan {
@@ -113,11 +117,7 @@
   min-height: 70px;
 }
 
-.sidebar--recolhida .sidebar__logo {
-  font-size: 13px;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-}
+
 
 @media (max-width: 600px) {
   .sidebar {
@@ -171,14 +171,17 @@
     visibility: visible;
   }
 
-  .sidebar--mobile-aberta .sidebar__logo {
-    font-size: 21px;
-    writing-mode: horizontal-tb;
-    transform: none;
+  
+  .sidebar--mobile-aberta .sidebar__marca {
+    flex: 0 0 165px;
+    min-height: 165px;
+    padding: 8px 4px 16px;
   }
 
-  .sidebar--mobile-aberta .sidebar__marca {
-    min-height: 105px;
+  .sidebar--mobile-aberta .sidebar__logo-img {
+    width: 100%;
+    max-width: 100%;
+    height: 145px;
   }
 
   .sidebar--mobile-aberta .sidebar__item {
