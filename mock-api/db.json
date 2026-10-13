@@ -1,0 +1,29 @@
+
+{
+  "users": [
+    {
+      "id": "1",
+      "nome": "João Pedro",
+      "email": "jp@gmail.com",
+      "cargo": "Operador",
+      "status": "Ativo",
+      "foto": null
+    },
+    {
+      "id": "2",
+      "nome": "Enzo José",
+      "email": "ej@gmail.com",
+      "cargo": "Operador",
+      "status": "Inativo",
+      "foto": null
+    },
+    {
+      "id": "3",
+      "nome": "Mario Lima",
+      "email": "ml@gmail.com",
+      "cargo": "Gestor",
+      "status": "Ativo",
+      "foto": null
+    }
+  ]
+}
