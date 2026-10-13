@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./CadUsuario.css";
 
-const CARGOS = ["Operário", "Supervisor", "Administrador"];
+const CARGOS = ["Operador", "Controlador"];
 
 const FORM_INICIAL = {
   nome: "",
