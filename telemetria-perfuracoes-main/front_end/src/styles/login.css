@@ -1,0 +1,186 @@
+
+.login-page {
+  min-height: 100vh;
+  background-color: var(--bg);
+  padding: 0;
+}
+
+.login-left {
+  text-align: center;
+}
+
+.login-logo {
+  width: 260px;
+  max-width: 80%;
+  height: auto;
+  margin-bottom: 1rem;
+  margin-top: -100px;
+}
+
+.login-welcome {
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  margin-top: -100px;
+}
+
+.login-subtitle {
+  color: var(--text);
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0;
+}
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  min-height: 500px;
+  background-color: var(--card);
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  .login-title { font-size: 2rem; }
+  .login-label { font-size: 1rem; }
+  .login-input { padding: 0.8rem 1rem; font-size: 1rem; }
+  .login-button { padding: 0.85rem; font-size: 1rem; }
+}
+
+.login-title {
+  color: var(--text);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.login-label {
+  color: var(--text);
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+.login-input {
+  width: 100%;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+  outline: none;
+}
+
+.login-input:focus {
+  border-color: var(--primary);
+}
+
+.login-input-wrap {
+  position: relative;
+}
+
+.login-eye {
+  position: absolute;
+  right: 0.8rem;
+  top: 0.55rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+}
+.login-button {
+  background-color: var(--primary);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-button:hover {
+  background-color: var(--primary-hover);
+}
+
+.login-register {
+  align-self: flex-end;
+  color: var(--text);
+  font-size: 0.75rem;
+  margin: 0.75rem 0 0;
+}
+
+.login-register a {
+  color: var(--link);
+  text-decoration: underline;
+}
+/* Cole no FINAL do src/styles/login.css.
+   Se já existir um .login-forgot antigo, apague o antigo. */
+
+.login-forgot {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--link);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: -0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.modal-box {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.modal-close:hover {
+  color: var(--link);
+}
+
+.modal-title {
+  color: var(--text);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.modal-text {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
