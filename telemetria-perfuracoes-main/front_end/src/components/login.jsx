@@ -3,7 +3,8 @@ import { FiEye, FiEyeOff, FiX } from "react-icons/fi";
 import "../styles/login.css";
 import logo from "../assets/logos/logo.png";
 
-export default function Login() {
+// 1. Adicione { onLoginSucesso } aqui nos parâmetros
+export default function Login({ onLoginSucesso }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -26,18 +27,19 @@ export default function Login() {
     setErro("");
     setCarregando(true);
     try {
-      // Aqui depois entra a chamada para a API de login
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // simulação de 2s
+      // Simulação de 2s da API
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // SIMULAÇÃO PARA TESTE: remova quando a API estiver pronta.
-      // Com a API, o back-end é quem diz se a senha está correta.
       const senhaCorreta = senha === "123456";
       if (!senhaCorreta) {
         setErro("Senha incorreta. Tente novamente.");
         return;
       }
 
-      console.log({ email, senha });
+      // 2. Chame a função para avisar o App.jsx que o login deu certo!
+      if (onLoginSucesso) {
+        onLoginSucesso();
+      }
     } finally {
       setCarregando(false);
     }
