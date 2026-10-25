@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Menu,
@@ -10,7 +9,7 @@ import {
   LogOut,
 } from 'lucide-react';
 
-import './Sidebar.css';
+import "../styles/Sidebar.css";
 import logo from '../assets/logos/logo.png';
 
 const itensMenu = [
@@ -24,6 +23,7 @@ const itensMenu = [
 function Sidebar({
   paginaAtiva = 'Dashboard',
   onNavegar,
+  onSair,
   mobileAberta = false,
   onFecharMobile,
 }) {
@@ -43,6 +43,12 @@ function Sidebar({
 
   function handleNavegacao(pagina) {
     onNavegar?.(pagina);
+    onFecharMobile?.();
+  }
+
+  // Botão Sair: avisa o App para voltar à tela de login
+  function handleSair() {
+    onSair?.();
     onFecharMobile?.();
   }
 
@@ -79,15 +85,13 @@ function Sidebar({
           <Menu size={19} />
         </button>
 
-        
         <div className="sidebar__marca d-flex flex-column align-items-center justify-content-center">
-            <img
-                src={logo}
-                alt="DrillTrack — Da Sonda à Decisão"
-                className="sidebar__logo-img"
-            />
+          <img
+            src={logo}
+            alt="DrillTrack — Da Sonda à Decisão"
+            className="sidebar__logo-img"
+          />
         </div>
-
 
         <nav
           className="sidebar__navegacao d-flex flex-column gap-1"
@@ -116,7 +120,7 @@ function Sidebar({
           <button
             type="button"
             className="sidebar__item btn d-flex align-items-center"
-            onClick={() => handleNavegacao('Sair')}
+            onClick={handleSair}
             title={!mostrarRotulos ? 'Sair' : undefined}
           >
             <LogOut size={16} />
