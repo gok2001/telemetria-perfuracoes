@@ -1,0 +1,22 @@
+:root {
+  --bg: #080b0f;
+  --card: #11171d;
+  --border: #c9ccd1;
+  --text: #ffffff;
+  --text-muted: #d0d3d8;
+  --primary: #b30f0f;
+  --primary-hover: #cc1414;
+  --link: #e01b1b;
+  --radius: 16px;
+
+  --bs-primary: #b30f0f;
+  --bs-body-bg: #080b0f;
+  --bs-body-color: #ffffff;
+  --bs-body-font-family: "Inter", sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  min-height: 100vh;
+}

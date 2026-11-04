@@ -1,0 +1,118 @@
+.app:has(.cadastro) {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app:has(.cadastro) .app__conteudo {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app__painel:has(.cadastro) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  padding: 0;          
+  overflow: hidden;
+}
+
+/* ===== Página ===== */
+.cadastro {
+  --cor-painel: #151b20;
+  --cor-campo: #1b2228;
+  --cor-borda: #9aa4ad;
+  --cor-texto: #fff;
+  --cor-primaria: #b30e0e;
+  --cor-primaria-hover: #cc1212;
+  --cor-erro: #ff6b6b;
+  --cor-sucesso: #5fd38d;
+  --fonte: "Poppins", "Segoe UI", sans-serif;
+
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;   /* formulário ocupa a altura toda do card */
+  color: var(--cor-texto);
+  font-family: var(--fonte);
+  text-align: left;
+}
+
+.cadastro .cadastro-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;  /* centraliza, mas deixa rolar se não couber */
+  gap: clamp(8px, 2.2vh, 16px);
+  width: 100%;
+  max-width: 500px;
+  padding: clamp(16px, 5vh, 32px) 50px;
+  overflow-y: auto;
+  background: var(--cor-painel);
+}
+
+.cadastro .campo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cadastro .linha {
+  display: flex;
+  gap: 16px;
+}
+
+.cadastro .campo label {
+  font-size: 12px;
+}
+
+.cadastro .campo input,
+.cadastro .campo select {
+  width: 100%;
+  height: clamp(32px, 5.5vh, 40px);
+  padding: 0 12px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--cor-texto);
+  background: var(--cor-campo);
+  border: 1px solid var(--cor-borda);
+  border-radius: 10px;
+  outline: none;
+}
+
+.cadastro .campo input:focus,
+.cadastro .campo select:focus {
+  border-color: var(--cor-texto);
+}
+
+.cadastro .campo select option {
+  background: var(--cor-campo);
+}
+
+.cadastro .mensagem {
+  margin: 0;
+  font-size: 12px;
+}
+
+.cadastro .mensagem.erro { color: var(--cor-erro); }
+.cadastro .mensagem.sucesso { color: var(--cor-sucesso); }
+
+.cadastro .botao {
+  height: clamp(36px, 6vh, 44px);
+  margin-top: clamp(8px, 2vh, 16px);
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--cor-texto);
+  background: var(--cor-primaria);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cadastro .botao:hover { background: var(--cor-primaria-hover); }
+.cadastro .botao:disabled { opacity: 0.6; cursor: not-allowed; }

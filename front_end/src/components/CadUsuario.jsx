@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./CadUsuario.css";
+import "../styles/CadUsuario.css";
 
 const CARGOS = ["Operador", "Controlador"];
 
