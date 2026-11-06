@@ -44,14 +44,15 @@
 .cadastro .cadastro-form {
   display: flex;
   flex-direction: column;
-  justify-content: safe center;  /* centraliza, mas deixa rolar se não couber */
-  gap: clamp(8px, 2.2vh, 16px);
+  justify-content: center;  
+  gap: 16px;                    
   width: 100%;
-  max-width: 500px;
-  padding: clamp(16px, 5vh, 32px) 50px;
+  max-width: 400px;
+  padding: 32px 40px;           
   overflow-y: auto;
   background: var(--cor-painel);
 }
+
 
 .cadastro .campo {
   display: flex;
@@ -74,7 +75,7 @@
 .cadastro .campo input,
 .cadastro .campo select {
   width: 100%;
-  height: clamp(32px, 5.5vh, 40px);
+  height: 40px;
   padding: 0 12px;
   font-size: 12px;
   font-family: inherit;
@@ -116,3 +117,6 @@
 
 .cadastro .botao:hover { background: var(--cor-primaria-hover); }
 .cadastro .botao:disabled { opacity: 0.6; cursor: not-allowed; }
+.cadastro .cadastro-form > .campo {
+  flex: 0 0 auto;  /* na coluna, não cresce nem encolhe */
+}
