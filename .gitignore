@@ -1,1 +1,5 @@
+# Dependências da API simulada
 mock-api/node_modules/
+
+# Variáveis de ambiente
+.env
