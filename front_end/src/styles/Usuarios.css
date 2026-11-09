@@ -93,3 +93,57 @@
   .usuarios-paginacao { align-items: flex-start; flex-direction: column; }
   .usuarios-form-acoes { padding: 0; }
 }
+
+/* =========================================
+   USUÁRIOS - DIMENSIONAMENTO FIXO
+   ========================================= */
+
+.usuarios-layout {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+}
+
+.usuarios-conteudo {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+}
+
+.usuarios-titulo {
+  flex-shrink: 0;
+}
+
+.usuarios-filtros {
+  flex-shrink: 0;
+}
+
+.usuarios-tabela-wrapper {
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.usuarios-paginacao {
+  flex-shrink: 0;
+}
+
+/* Drawer continua funcionando normalmente */
+.usuarios-drawer {
+  max-height: 100%;
+}
+
+@media (max-width: 760px) {
+  .usuarios-layout {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .usuarios-conteudo {
+    min-height: 0;
+  }
+}
