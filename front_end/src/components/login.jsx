@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { FiEye, FiEyeOff, FiX } from "react-icons/fi";
+import { Eye, EyeOff, X } from "lucide-react";
 import "../styles/login.css";
 import logo from "../assets/logos/logo.png";
 
@@ -15,6 +16,7 @@ export default function Login({ onLoginSucesso }) {
     function handleEsc(e) {
       if (e.key === "Escape") setMostrarAviso(false);
     }
+
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
@@ -25,11 +27,13 @@ export default function Login({ onLoginSucesso }) {
 
     setErro("");
     setCarregando(true);
+
     try {
       // Simulação de 2s da API
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const senhaCorreta = senha === "123456";
+
       if (!senhaCorreta) {
         setErro("Senha incorreta. Tente novamente.");
         return;
@@ -47,11 +51,19 @@ export default function Login({ onLoginSucesso }) {
   return (
     <div className="container-fluid login-page">
       <div className="row g-0 min-vh-100">
+
         {/* Lado esquerdo */}
         <div className="col-md-6 d-flex flex-column justify-content-center align-items-center login-left">
-          <img src={logo} alt="DrillTrack - Da sonda à decisão" className="login-logo" />
+          <img
+            src={logo}
+            alt="DrillTrack - Da sonda à decisão"
+            className="login-logo"
+          />
+
           <h2 className="login-welcome">Bem-vindo de volta!</h2>
-          <p className="login-subtitle">Faça login para acessar sua conta</p>
+          <p className="login-subtitle">
+            Faça login para acessar sua conta
+          </p>
         </div>
 
         {/* Lado direito */}
@@ -59,7 +71,10 @@ export default function Login({ onLoginSucesso }) {
           <form className="login-card" onSubmit={handleSubmit}>
             <h1 className="login-title">Login</h1>
 
-            <label htmlFor="email" className="login-label">E-mail</label>
+            <label htmlFor="email" className="login-label">
+              E-mail
+            </label>
+
             <input
               id="email"
               type="email"
@@ -70,7 +85,10 @@ export default function Login({ onLoginSucesso }) {
               required
             />
 
-            <label htmlFor="senha" className="login-label">Senha</label>
+            <label htmlFor="senha" className="login-label">
+              Senha
+            </label>
+
             <div className="login-input-wrap">
               <input
                 id="senha"
@@ -85,13 +103,19 @@ export default function Login({ onLoginSucesso }) {
                 aria-invalid={erro ? "true" : "false"}
                 required
               />
+
+              {/* Ícone Lucide para visualizar senha */}
               <button
                 type="button"
                 className="login-eye"
                 onClick={() => setMostrarSenha(!mostrarSenha)}
                 aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
               >
-                {mostrarSenha ? <FiEye /> : <FiEyeOff />}
+                {mostrarSenha ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
               </button>
             </div>
 
@@ -109,7 +133,11 @@ export default function Login({ onLoginSucesso }) {
               Esqueceu sua senha?
             </button>
 
-            <button type="submit" className="login-button" disabled={carregando}>
+            <button
+              type="submit"
+              className="login-button"
+              disabled={carregando}
+            >
               {carregando ? (
                 <>
                   <span
@@ -132,7 +160,10 @@ export default function Login({ onLoginSucesso }) {
 
       {/* Pop-up de senha esquecida */}
       {mostrarAviso && (
-        <div className="modal-overlay" onClick={() => setMostrarAviso(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setMostrarAviso(false)}
+        >
           <div
             className="modal-box"
             role="dialog"
@@ -145,13 +176,14 @@ export default function Login({ onLoginSucesso }) {
               onClick={() => setMostrarAviso(false)}
               aria-label="Fechar mensagem"
             >
-              <FiX />
+              <X size={20} />
             </button>
 
             <h2 className="modal-title">Alteração de senha</h2>
+
             <p className="modal-text">
-              Alteração de senha solicitada à Central de Operação. Aguarde o
-              contato para redefinir sua senha.
+              Alteração de senha solicitada à Central de Operação.
+              Aguarde o contato para redefinir sua senha.
             </p>
           </div>
         </div>
