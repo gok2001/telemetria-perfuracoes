@@ -218,3 +218,18 @@
     transition: none;
   }
 }
+
+/* Sidebar alinhada ao layout principal */
+.sidebar {
+  height: 100vh;
+  height: 100dvh;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    height: 100vh;
+    height: 100dvh;
+  }
+}

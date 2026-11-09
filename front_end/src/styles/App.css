@@ -124,3 +124,57 @@ body {
     padding: 12px;
   }
 }
+
+/* =========================================
+   LAYOUT FIXO - DRILLTRACK
+   ========================================= */
+
+.app {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app__conteudo {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  width: 0;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.app__cabecalho {
+  flex-shrink: 0;
+}
+
+.app__painel {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Ajuste para telas menores */
+@media (max-width: 768px) {
+  .app {
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  .app__conteudo {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 16px;
+    overflow: hidden;
+  }
+}
