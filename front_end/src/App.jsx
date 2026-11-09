@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
@@ -10,25 +9,85 @@ import DadosBrutos from './components/DadosBrutos';
 import Operacao from './components/Operacao';
 import CadUsuario from './components/CadUsuario';
 import Usuarios from './components/Usuarios';
-import Login from './components/login'; // Certifique-se que o nome e a letra minúscula/maiúscula batem com o arquivo
+import Login from './components/login';
 
-// Importando o CSS
 import './styles/App.css';
 
-export default function App() {
-  // Controla se o utilizador está logado ou não (começa como false para mostrar o Login)
-  const [estaLogado, setEstaLogado] = useState(false);
+const CHAVE_SESSAO = 'drilltrack_autenticado';
+const CHAVE_PAGINA = 'drilltrack_pagina_ativa';
 
-  const [paginaAtiva, setPaginaAtiva] = useState('Dashboard');
+const PAGINAS_VALIDAS = [
+  'Dashboard',
+  'Dados Brutos',
+  'Operação',
+  'Cadastrar Usuário',
+  'Usuários',
+  'Configuração',
+];
+
+function recuperarPagina() {
+  try {
+    const paginaSalva = localStorage.getItem(CHAVE_PAGINA);
+    return PAGINAS_VALIDAS.includes(paginaSalva) ? paginaSalva : 'Dashboard';
+  } catch {
+    return 'Dashboard';
+  }
+}
+
+function recuperarSessao() {
+  try {
+    return localStorage.getItem(CHAVE_SESSAO) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export default function App() {
+  // Recupera a sessão e a última página após atualizar o navegador.
+  const [estaLogado, setEstaLogado] = useState(recuperarSessao);
+  const [paginaAtiva, setPaginaAtiva] = useState(recuperarPagina);
   const [mobileAberta, setMobileAberta] = useState(false);
 
-  // Se NÃO estiver logado, exibe apenas a tela de Login
-  if (!estaLogado) {
-    // Passamos uma função para o Login avisar o App que o login deu certo
-    return <Login onLoginSucesso={() => setEstaLogado(true)} />;
+  function handleLoginSucesso() {
+    try {
+      localStorage.setItem(CHAVE_SESSAO, 'true');
+    } catch (error) {
+      console.error('Não foi possível salvar a sessão:', error);
+    }
+    setEstaLogado(true);
   }
 
-  // Função para decidir qual componente exibir no painel interno
+  function handleNavegar(pagina) {
+    const paginaValida = PAGINAS_VALIDAS.includes(pagina)
+      ? pagina
+      : 'Dashboard';
+
+    setPaginaAtiva(paginaValida);
+
+    try {
+      localStorage.setItem(CHAVE_PAGINA, paginaValida);
+    } catch (error) {
+      console.error('Não foi possível salvar a página atual:', error);
+    }
+  }
+
+  function handleSair() {
+    try {
+      localStorage.removeItem(CHAVE_SESSAO);
+      localStorage.removeItem(CHAVE_PAGINA);
+    } catch (error) {
+      console.error('Não foi possível limpar os dados da sessão:', error);
+    }
+
+    setEstaLogado(false);
+    setPaginaAtiva('Dashboard');
+    setMobileAberta(false);
+  }
+
+  if (!estaLogado) {
+    return <Login onLoginSucesso={handleLoginSucesso} />;
+  }
+
   const renderizarPagina = () => {
     switch (paginaAtiva) {
       case 'Dashboard':
@@ -46,16 +105,12 @@ export default function App() {
     }
   };
 
-  // Se JÁ estiver logado, exibe o layout completo com a Sidebar e o Conteúdo
   return (
     <div className="app d-flex">
       <Sidebar
         paginaAtiva={paginaAtiva}
-        onNavegar={setPaginaAtiva}
-        onSair={() => {
-          setEstaLogado(false);        // volta para a tela de login
-          setPaginaAtiva('Dashboard'); // no próximo login, abre no Dashboard
-        }}
+        onNavegar={handleNavegar}
+        onSair={handleSair}
         mobileAberta={mobileAberta}
         onFecharMobile={() => setMobileAberta(false)}
       />
