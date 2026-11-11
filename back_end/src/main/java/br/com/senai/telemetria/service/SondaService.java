@@ -2,7 +2,7 @@ package br.com.senai.telemetria.service;
 
 import org.springframework.stereotype.Service;
 
-import br.com.senai.telemetria.model.Sonda;
+import br.com.senai.telemetria.entity.Sonda;
 import br.com.senai.telemetria.repository.SondaRepository;
 import jakarta.transaction.Transactional;
 
