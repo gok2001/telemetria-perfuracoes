@@ -28,7 +28,7 @@ public class SondaService {
             throw new IllegalArgumentException("O nome é obrigatório");
         }
 
-        if (nome.length() > 50) {
+        if (nome.length() > 150) {
             throw new IllegalArgumentException("O nome deve ter até 150 caracteres");
         }
 
