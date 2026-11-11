@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.senai.telemetria.entity.Sonda;
 import br.com.senai.telemetria.repository.SondaRepository;
 
+import java.util.List;
+
 @Service 
 public class SondaService {
     private final SondaRepository sondaRepository;
@@ -46,5 +48,9 @@ public class SondaService {
         sonda.setStatus("disponivel");
 
         return sondaRepository.save(sonda);
+    }
+
+    public List<Sonda> listarSondas() {
+        return sondaRepository.findAll();
     }
 }
