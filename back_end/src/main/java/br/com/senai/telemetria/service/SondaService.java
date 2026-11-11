@@ -22,6 +22,8 @@ public class SondaService {
             throw new IllegalArgumentException("O código é obrigatório");
         }
 
+        codigo = codigo.trim();
+
         if (codigo.length() > 50) {
             throw new IllegalArgumentException("O código deve ter até 50 caracteres");
         }
@@ -30,12 +32,11 @@ public class SondaService {
             throw new IllegalArgumentException("O nome é obrigatório");
         }
 
+        nome = nome.trim();
+
         if (nome.length() > 150) {
             throw new IllegalArgumentException("O nome deve ter até 150 caracteres");
         }
-
-        codigo = codigo.trim();
-        nome = nome.trim();
 
         if (sondaRepository.existsByCodigo(codigo)) {
             throw new IllegalArgumentException("Já existe uma sonda com esse código");
@@ -50,6 +51,7 @@ public class SondaService {
         return sondaRepository.save(sonda);
     }
 
+    @Transactional(readOnly = true)
     public List<Sonda> listarSondas() {
         return sondaRepository.findAll();
     }
