@@ -20,8 +20,16 @@ public class SondaService {
             throw new IllegalArgumentException("O código é obrigatório");
         }
 
+        if (codigo.length() > 50) {
+            throw new IllegalArgumentException("O código deve ter até 50 caracteres");
+        }
+
         if (nome == null || nome.isBlank()) {
             throw new IllegalArgumentException("O nome é obrigatório");
+        }
+
+        if (nome.length() > 50) {
+            throw new IllegalArgumentException("O nome deve ter até 150 caracteres");
         }
 
         codigo = codigo.trim();
