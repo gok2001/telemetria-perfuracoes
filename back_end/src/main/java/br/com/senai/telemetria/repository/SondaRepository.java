@@ -7,5 +7,5 @@ import br.com.senai.telemetria.entity.Sonda;
 
 @Repository 
 public interface SondaRepository extends JpaRepository<Sonda, Integer> {
-    boolean existsByCodigo(String Codigo);
+    boolean existsByCodigo(String codigo);
 }
