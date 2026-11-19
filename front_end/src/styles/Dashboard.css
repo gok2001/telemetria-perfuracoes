@@ -1,0 +1,101 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: #fff;
+  text-align: left;
+}
+
+/* ===== Cards ===== */
+.dashboard .dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.dashboard .dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  background: #151b20;
+  border: 1px solid #293139;
+  border-radius: 12px;
+}
+
+.dashboard .dash-titulo {
+  margin: 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.dashboard .dash-valor {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.1;
+  color: var(--cor-estado);
+}
+
+.dashboard .dash-unidade {
+  font-size: 18px;
+}
+
+.dashboard .dash-status {
+  margin: 0;
+  font-size: 14px;
+  color: var(--cor-estado);
+}
+
+/* Cor de cada estado (vale pro card e pro indicador de conexão) */
+.dashboard .monitorando { --cor-estado: #3b82f6; }
+.dashboard .normal      { --cor-estado: #22c55e; }
+.dashboard .alerta      { --cor-estado: #eab308; }
+.dashboard .aguardando  { --cor-estado: #9ca3af; }
+
+/* ===== Gráfico ===== */
+.dashboard .dash-grafico {
+  padding: 16px;
+  background: #151b20;
+  border: 1px solid #293139;
+  border-radius: 12px;
+}
+
+.dashboard .dash-grafico-topo {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.dashboard .dash-grafico-topo .normal,
+.dashboard .dash-grafico-topo .alerta {
+  color: var(--cor-estado);
+}
+
+.dashboard .dash-grafico-area {
+  height: clamp(240px, 45vh, 420px);
+}
+
+.dashboard .dash-vazio {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  margin: 0;
+  color: #9ca3af;
+}
+
+/* ===== Responsivo ===== */
+@media (max-width: 992px) {
+  .dashboard .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+}

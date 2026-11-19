@@ -3,7 +3,7 @@ import time
 import random
 import json
 
-broker = "10.110.18.11"
+broker = "localhost"
 port = 1883
 
 topicTemperatura = "sensorMz/temperatura"
@@ -32,7 +32,7 @@ client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.connect(broker, port, 60)
 
 while True:
-    publicacaoDados(1, "temperatura", "°C", topicTemperatura)
+    publicacaoDados(1, "temperatura", "C", topicTemperatura)
     publicacaoDados(2, "rotacao", "rpm", topicRotatcao)
     publicacaoDados(3, "profundidade", "m", topicProfundidade)
     publicacaoDados(4, "vibracao", "Hz", topicVibracao)

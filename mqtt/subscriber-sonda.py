@@ -5,11 +5,11 @@ import time
 import asyncio
 import websockets
 
-broker = "10.110.18.11"
+broker = "localhost"
 port = 1883
 
 topicTemperatura = "sensorMz/temperatura"
-topicRotatcao = "sensorMz/rotatcao"
+topicRotacao = "sensorMz/rotacao"
 topicProfundidade = "sensorMz/profundidade"
 topicVibracao = "sensorMz/vibracao"
 
@@ -74,7 +74,7 @@ client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.connect(broker, port, 60)
 
 
-client.subscribe([(topicTemperatura, 0), (topicRotatcao, 0), (topicProfundidade, 0), (topicVibracao, 0)])
+client.subscribe([(topicTemperatura, 0), (topicRotacao, 0), (topicProfundidade, 0), (topicVibracao, 0)])
 client.on_message = on_message
 
 
