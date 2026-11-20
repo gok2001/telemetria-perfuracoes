@@ -13,7 +13,7 @@ public record OperacaoRequest(
     Integer sondaId,
     
     @NotNull(message = "O status é obrigatório") 
-    StatusOperacao statusOperacao
+    StatusOperacao status
 ) {
     
 }

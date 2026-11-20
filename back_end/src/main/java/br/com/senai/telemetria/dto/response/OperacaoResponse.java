@@ -1,9 +1,9 @@
 package br.com.senai.telemetria.dto.response;
 
-import java.time.Instant;
-
 import br.com.senai.telemetria.entity.Operacao;
 import br.com.senai.telemetria.enums.StatusOperacao;
+
+import java.time.Instant;
 
 public record OperacaoResponse(
 
@@ -35,6 +35,6 @@ public record OperacaoResponse(
             
             operacao.getDataHoraInicio(),
             operacao.getDataHoraFim()
-        )
+        );
     }
 }
