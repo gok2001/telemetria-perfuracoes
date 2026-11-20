@@ -13,7 +13,7 @@ import {
 import '../styles/Usuarios.css';
 
 const API_URL = 'http://localhost:3001/users';
-const ITENS_POR_PAGINA = 5;
+const ITENS_POR_PAGINA = 10;
 const CARGOS = ['Operador', 'Controlador'];
 const STATUS = ['Ativo', 'Inativo'];
 
@@ -25,6 +25,14 @@ const usuarioVazio = {
   status: 'Ativo',
   foto: null,
 };
+
+// Mantém a mesma lógica visual de paginação utilizada em Dados Brutos.
+function paginasVisiveis(atual, total) {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+  if (atual <= 3) return [1, 2, 3, "...", total];
+  if (atual >= total - 2) return [1, "...", total - 2, total - 1, total];
+  return [1, "...", atual, "...", total];
+}
 
 function iniciais(nome = '') {
   return nome
@@ -161,10 +169,7 @@ export default function Usuarios() {
     <div className="usuarios-layout">
       <section className="usuarios-conteudo">
         <div className="usuarios-titulo">
-          <div>
-            <h2>Usuários</h2>
             <p>Gerenciar os usuários da plataforma</p>
-          </div>
         </div>
 
         <div className="usuarios-filtros">
@@ -234,18 +239,55 @@ export default function Usuarios() {
           </table>
         </div>
 
+        
         <footer className="usuarios-paginacao">
           <span>
-            {usuariosFiltrados.length === 0
-              ? 'Mostrando 0 de 0 registros'
-              : `Mostrando ${inicio + 1} a ${Math.min(inicio + ITENS_POR_PAGINA, usuariosFiltrados.length)} de ${usuariosFiltrados.length} registros`}
+            {carregando
+              ? 'Carregando registros...'
+              : usuariosFiltrados.length === 0
+                ? 'Mostrando 0 de 0 registros.'
+                : `Mostrando ${inicio + 1} a ${Math.min(
+                    inicio + ITENS_POR_PAGINA,
+                    usuariosFiltrados.length
+                  )} de ${usuariosFiltrados.length} registros.`}
           </span>
-          <div className="usuarios-paginas">
-            <button type="button" onClick={() => setPagina((atual) => Math.max(1, atual - 1))} disabled={paginaAtual === 1} aria-label="Página anterior"><ChevronLeft size={18} /></button>
-            <strong>{paginaAtual}</strong>
-            <button type="button" onClick={() => setPagina((atual) => Math.min(totalPaginas, atual + 1))} disabled={paginaAtual === totalPaginas} aria-label="Próxima página"><ChevronRight size={18} /></button>
-          </div>
+
+          {!carregando && totalPaginas > 1 && (
+            <div className="usuarios-paginas">
+              <button
+                type="button"
+                onClick={() => setPagina((atual) => Math.max(1, atual - 1))}
+                disabled={paginaAtual === 1}
+                aria-label="Página anterior"
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              {numerosPaginas.map((numero) => (
+                <button
+                  key={numero}
+                  type="button"
+                  className={paginaAtual === numero ? 'pagina-ativa' : ''}
+                  onClick={() => setPagina(numero)}
+                  aria-label={`Ir para página ${numero}`}
+                  aria-current={paginaAtual === numero ? 'page' : undefined}
+                >
+                  {numero}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => setPagina((atual) => Math.min(totalPaginas, atual + 1))}
+                disabled={paginaAtual === totalPaginas}
+                aria-label="Próxima página"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
         </footer>
+
       </section>
 
       {usuarioSelecionado && (
