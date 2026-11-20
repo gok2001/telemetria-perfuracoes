@@ -5,30 +5,38 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import pandas as pd
-from config import CSV_COLUMNS, CSV_FILE_PATH
+from config import CSV_COLUMNS, CSV_FILENAME, DATA_DIR
 
 
 class CsvStorage:
-    def __init__(self, file_path: str = CSV_FILE_PATH):
-        self.file_path = file_path
+    def __init__(self, base_data_dir: str = DATA_DIR):
+        self.base_data_dir = base_data_dir
         self._lock = threading.Lock()
-        self._initialize_file()
+        # Garante que a pasta e o CSV do dia atual já existam ao iniciar
+        self._ensure_today_file()
 
-    def _initialize_file(self) -> None:
-        """Cria o arquivo CSV com o cabeçalho caso ele ainda não exista."""
+    def _get_today_csv_path(self) -> str:
+        """Retorna o caminho 'serial-api/dados/YYYY-MM-DD/dados_sonda.csv' do dia atual."""
+        today_folder = datetime.now().strftime("%Y-%m-%d")
+        daily_dir = os.path.join(self.base_data_dir, today_folder)
+        os.makedirs(daily_dir, exist_ok=True)
+        return os.path.join(daily_dir, CSV_FILENAME)
+
+    def _ensure_today_file(self) -> str:
+        """Cria a pasta do dia e o CSV com cabeçalho caso ainda não existam."""
         with self._lock:
-            if not os.path.exists(self.file_path):
-                with open(self.file_path, mode="w", newline="", encoding="utf-8") as f:
+            file_path = self._get_today_csv_path()
+            if not os.path.exists(file_path):
+                with open(file_path, mode="w", newline="", encoding="utf-8") as f:
                     writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
                     writer.writeheader()
+            return file_path
 
     def save_reading(self, payload: Dict) -> Dict:
-        """
-        Recebe um dicionário validado do Arduino, adiciona o timestamp atual
-        e grava uma nova linha no final do CSV.
-        """
+        """Salva a leitura no CSV da pasta correspondente ao dia atual."""
+        now = datetime.now()
         row = {
-            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "timestamp": now.isoformat(timespec="seconds"),
             "machine_id": int(payload["id"]),
             "temperatura": float(payload["temperatura"]),
             "vibracao": float(payload["vibracao"]),
@@ -37,8 +45,13 @@ class CsvStorage:
         }
 
         with self._lock:
-            with open(self.file_path, mode="a", newline="", encoding="utf-8") as f:
+            file_path = self._get_today_csv_path()
+            file_exists = os.path.exists(file_path)
+
+            with open(file_path, mode="a", newline="", encoding="utf-8") as f:
                 writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
+                if not file_exists:
+                    writer.writeheader()
                 writer.writerow(row)
 
         return row
@@ -46,11 +59,12 @@ class CsvStorage:
     def get_recent_readings(
         self, limit: int = 50, machine_id: Optional[int] = None
     ) -> tuple[int, List[Dict]]:
-        """Lê as últimas leituras de uma máquina específica ou de todas."""
+        """Lê as últimas leituras do CSV do dia atual."""
         with self._lock:
-            if not os.path.exists(self.file_path):
+            file_path = self._get_today_csv_path()
+            if not os.path.exists(file_path):
                 return 0, []
-            df = pd.read_csv(self.file_path)
+            df = pd.read_csv(file_path)
 
         if df.empty:
             return 0, []
@@ -62,21 +76,18 @@ class CsvStorage:
         records = df.tail(limit).to_dict(orient="records")
         return total_records, records
 
-    def get_grouped_by_machine(self, limit: int = 20) -> Dict[int, Dict]:
-        """
-        Lê o CSV uma única vez e retorna um dicionário agrupado por machine_id:
-        { 4: { "total_registros": 150, "historico": [...] }, ... }
-        """
+    def get_grouped_by_machine(self, limit: int = 50) -> Dict[int, Dict]:
+        """Lê o CSV do dia atual e agrupa as últimas 'limit' leituras por machine_id."""
         with self._lock:
-            if not os.path.exists(self.file_path):
+            file_path = self._get_today_csv_path()
+            if not os.path.exists(file_path):
                 return {}
-            df = pd.read_csv(self.file_path)
+            df = pd.read_csv(file_path)
 
         if df.empty:
             return {}
 
         grouped = {}
-        # Agrupa pelo ID da sonda e ordena pelo ID crescente
         for machine_id, group_df in df.groupby("machine_id", sort=True):
             m_id = int(machine_id)
             grouped[m_id] = {

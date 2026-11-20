@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { buscarDadosDashboard } from "../services/telemetriaApi";
 
-export function useTelemetria(limite = 20, intervaloMs = 2000) {
+export function useTelemetria(limite = 30, intervaloMs = 2000) {
   const [maquinas, setMaquinas] = useState([]);
   const [conectado, setConectado] = useState(false);
   const [carregando, setCarregando] = useState(true);
@@ -36,8 +36,9 @@ export function useTelemetria(limite = 20, intervaloMs = 2000) {
     };
   }, [limite, intervaloMs]);
 
-  // Junta todos os alertas de todas as máquinas para o pop-up global
-  const todosAlertas = maquinas.flatMap((m) => m.alertas || []);
-
-  return { maquinas, conectado, carregando, todosAlertas };
+  return {
+    maquinas,
+    conectado,
+    carregando,
+  };
 }

@@ -32,8 +32,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="GEOSOL - API de Telemetria Edge",
-    description="Coleta dados da Serial do Arduino, salva em CSV e calcula estatísticas.",
-    version="1.2.0",
+    description="Coleta dados da Serial do Arduino, particiona CSV por dia e calcula estatísticas.",
+    version="1.3.0",
     lifespan=lifespan,
 )
 
@@ -46,14 +46,13 @@ app.add_middleware(
 )
 
 
-def formatar_data_hora(iso_ts: str) -> tuple[str, str]:
-    """Converte '2026-11-20T15:52:40' em ('15:52:40', '20/11/2026 15:52:40')."""
+def formatar_data_hora(iso_ts: str) -> str:
+    """Converte '2026-11-20T15:52:40' em '20/11/2026 15:52:40'."""
     try:
         dt = datetime.fromisoformat(iso_ts)
-        return dt.strftime("%H:%M:%S"), dt.strftime("%d/%m/%Y %H:%M:%S")
+        return dt.strftime("%d/%m/%Y %H:%M:%S")
     except ValueError:
-        hora = iso_ts.split("T")[1] if "T" in iso_ts else iso_ts
-        return hora, iso_ts
+        return iso_ts
 
 
 def calculate_statistics(records: List[Dict]) -> Dict:
@@ -83,12 +82,12 @@ def calculate_statistics(records: List[Dict]) -> Dict:
 
 
 def extract_alerts(machine_id: int, records: List[Dict]) -> List[Dict]:
-    """Identifica leituras fora do limite e formata dia e hora para a tabela."""
+    """Identifica leituras fora do limite com Data e Hora completas."""
     alertas = []
 
     for row in records:
         ts = row.get("timestamp", "")
-        hora, data_hora = formatar_data_hora(ts)
+        data_hora = formatar_data_hora(ts)
 
         for chave, meta in SENSOR_CONFIG.items():
             limite = meta["limite"]
@@ -104,7 +103,6 @@ def extract_alerts(machine_id: int, records: List[Dict]) -> List[Dict]:
                         "unidade": meta["unidade"],
                         "valor": round(float(valor), 2),
                         "limite": limite,
-                        "hora": hora,
                         "data_hora": data_hora,
                     }
                 )
@@ -115,12 +113,15 @@ def extract_alerts(machine_id: int, records: List[Dict]) -> List[Dict]:
 
 @app.get("/api/telemetria")
 def get_telemetria(
-    limite: int = Query(default=30, ge=1, le=1000),
+    limite: int = Query(default=50, ge=1, le=1000),
     machine_id: Optional[int] = Query(default=None),
 ):
     total_registros, historico = storage.get_recent_readings(
         limit=limite, machine_id=machine_id
     )
+    for item in historico:
+        item["data_hora"] = formatar_data_hora(item.get("timestamp", ""))
+
     return {
         "machine_id_filtro": machine_id,
         "total_registros_csv": total_registros,
@@ -132,7 +133,7 @@ def get_telemetria(
 
 @app.get("/api/dashboard")
 def get_dashboard(
-    limite: int = Query(default=20, ge=1, le=500),
+    limite: int = Query(default=50, ge=1, le=500),
 ):
     grouped = storage.get_grouped_by_machine(limit=limite)
     maquinas_lista = []
@@ -140,8 +141,7 @@ def get_dashboard(
     for machine_id, data in grouped.items():
         historico = data["historico"]
         for item in historico:
-            hora, _ = formatar_data_hora(item.get("timestamp", ""))
-            item["hora"] = hora
+            item["data_hora"] = formatar_data_hora(item.get("timestamp", ""))
 
         alertas = extract_alerts(machine_id, historico)
 

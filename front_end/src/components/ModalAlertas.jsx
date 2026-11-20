@@ -1,6 +1,6 @@
 import { TriangleAlert, X } from "lucide-react";
 
-export default function ModalAlertas({ aberto, aoFechar, alertas }) {
+export default function ModalAlertas({ aberto, aoFechar, alertas, machineId }) {
   if (!aberto) return null;
 
   return (
@@ -12,8 +12,11 @@ export default function ModalAlertas({ aberto, aoFechar, alertas }) {
         <div className="dash-modal-topo">
           <div className="dash-modal-titulo">
             <TriangleAlert size={20} />
-            <span>Alertas Registrados ({alertas.length})</span>
+            <span>
+              Últimos Alertas {machineId ? `— Sonda #${machineId}` : ""} ({alertas.length})
+            </span>
           </div>
+
           <button
             type="button"
             className="dash-popup-fechar"
@@ -26,7 +29,7 @@ export default function ModalAlertas({ aberto, aoFechar, alertas }) {
 
         <div className="dash-modal-corpo">
           {alertas.length === 0 ? (
-            <p className="dash-vazio">Nenhum alerta registrado no momento.</p>
+            <p className="dash-vazio">Nenhum alerta registrado para esta sonda.</p>
           ) : (
             <table className="dash-tabela-alertas">
               <thead>
@@ -49,9 +52,7 @@ export default function ModalAlertas({ aberto, aoFechar, alertas }) {
                       </strong>
                       <small> (limite {alerta.limite})</small>
                     </td>
-                    <td className="col-data">
-                      {alerta.data_hora || alerta.hora}
-                    </td>
+                    <td className="col-data">{alerta.data_hora}</td>
                   </tr>
                 ))}
               </tbody>

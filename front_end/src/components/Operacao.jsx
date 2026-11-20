@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { useTelemetria } from "../hooks/useTelemetria";
 import SeletorMaquinas from "./SeletorMaquinas";
@@ -6,8 +6,18 @@ import ModalAlertas from "./ModalAlertas";
 import "../styles/Dashboard.css";
 
 export default function Operacao() {
-  const { maquinas, conectado, carregando, todosAlertas } = useTelemetria(20, 2000);
+  const { maquinas, conectado, carregando } = useTelemetria(30, 2000);
+  const [indiceAtual, setIndiceAtual] = useState(0);
   const [modalAberto, setModalAberto] = useState(false);
+
+  useEffect(() => {
+    if (indiceAtual >= maquinas.length && maquinas.length > 0) {
+      setIndiceAtual(maquinas.length - 1);
+    }
+  }, [maquinas.length, indiceAtual]);
+
+  const maquinaAtual = maquinas[indiceAtual] || null;
+  const alertasDaMaquina = (maquinaAtual?.alertas || []).slice(0, 10);
 
   return (
     <div className="dashboard">
@@ -15,11 +25,11 @@ export default function Operacao() {
         type="button"
         className="dash-alerta-botao"
         onClick={() => setModalAberto(true)}
-        aria-label="Abrir alertas"
+        aria-label="Abrir alertas da sonda atual"
       >
         <TriangleAlert size={30} />
-        {todosAlertas.length > 0 && (
-          <span className="dash-alerta-contador">{todosAlertas.length}</span>
+        {alertasDaMaquina.length > 0 && (
+          <span className="dash-alerta-contador">{alertasDaMaquina.length}</span>
         )}
       </button>
 
@@ -30,13 +40,16 @@ export default function Operacao() {
           maquinas={maquinas}
           conectado={conectado}
           modo="operador"
+          indiceAtual={indiceAtual}
+          aoMudarIndice={setIndiceAtual}
         />
       )}
 
       <ModalAlertas
         aberto={modalAberto}
         aoFechar={() => setModalAberto(false)}
-        alertas={todosAlertas}
+        alertas={alertasDaMaquina}
+        machineId={maquinaAtual?.machine_id}
       />
     </div>
   );

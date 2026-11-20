@@ -48,12 +48,11 @@ export default function BlocoMaquina({ maquina, conectado, modo = "operador" }) 
         <h2>Sonda #{machineId}</h2>
         <span className="dash-maquina-registros">
           {maquina?.total_registros_csv
-            ? `${maquina.total_registros_csv} leituras registradas`
-            : "Sem histórico"}
+            ? `${maquina.total_registros_csv} leituras hoje (exibindo últimas ${historico.length})`
+            : "Sem histórico hoje"}
         </span>
       </div>
 
-      {/* Sempre 4 cards lado a lado em 1 linha */}
       <div className="dashboard-cards">
         {SENSORES.map((sensor) => {
           const dadosSensor = estatisticas[sensor.chave] || {};
@@ -102,7 +101,6 @@ export default function BlocoMaquina({ maquina, conectado, modo = "operador" }) 
         })}
       </div>
 
-      {/* Gráfico inteiro visível */}
       <div className="dash-grafico">
         <div className="dash-grafico-topo">
           <span>Monitoramento da sonda #{machineId}</span>
@@ -118,7 +116,7 @@ export default function BlocoMaquina({ maquina, conectado, modo = "operador" }) 
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={historico}>
                 <CartesianGrid stroke="#293139" strokeDasharray="3 3" />
-                <XAxis dataKey="hora" stroke="#9ca3af" fontSize={11} />
+                <XAxis dataKey="data_hora" stroke="#9ca3af" fontSize={10} />
                 <YAxis stroke="#9ca3af" fontSize={11} />
                 <Tooltip
                   contentStyle={{
