@@ -1,4 +1,4 @@
-package br.com.senai.telemetria.model;
+package br.com.senai.telemetria.entity;
 
 import jakarta.persistence.*;
 
