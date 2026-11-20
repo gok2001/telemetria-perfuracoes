@@ -2,6 +2,7 @@ package br.com.senai.telemetria.entity;
 
 import br.com.senai.telemetria.enums.Cargo;
 import br.com.senai.telemetria.enums.StatusUsuario;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
