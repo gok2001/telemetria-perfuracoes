@@ -10,7 +10,7 @@ public record UsuarioResponse(
     String email,
     String cpf,
     Cargo cargo,
-    StatusUsuario statusUsuario
+    StatusUsuario status
 ) {
     public static UsuarioResponse fromEntity(
         Usuario usuario
