@@ -156,3 +156,151 @@ export default function Usuarios() {
       setErro(error.message);
     }
   }
+
+  return (
+    <div className="usuarios-layout">
+      <section className="usuarios-conteudo">
+        <div className="usuarios-titulo">
+          <div>
+            <h2>Usuários</h2>
+            <p>Gerenciar os usuários da plataforma</p>
+          </div>
+        </div>
+
+        <div className="usuarios-filtros">
+          <label className="usuarios-busca">
+            <span className="visually-hidden">Buscar usuário</span>
+            <input
+              type="search"
+              placeholder="Buscar usuário..."
+              value={busca}
+              onChange={(event) => { setBusca(event.target.value); setPagina(1); }}
+            />
+            <Search size={21} aria-hidden="true" />
+          </label>
+
+          <select
+            aria-label="Filtrar por cargo"
+            value={cargoFiltro}
+            onChange={(event) => { setCargoFiltro(event.target.value); setPagina(1); }}
+          >
+            <option>Todos os cargos</option>
+            {CARGOS.map((cargo) => <option key={cargo}>{cargo}</option>)}
+          </select>
+        </div>
+
+        {erro && !usuarioSelecionado && <div className="usuarios-alerta">{erro}</div>}
+
+        <div className="usuarios-tabela-wrapper">
+          <table className="usuarios-tabela">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>E-mail</th>
+                <th>Cargo</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {carregando ? (
+                <tr><td colSpan="5" className="usuarios-vazio"><LoaderCircle className="usuarios-spinner" size={20} /> Carregando usuários...</td></tr>
+              ) : usuariosPagina.length === 0 ? (
+                <tr><td colSpan="5" className="usuarios-vazio">Nenhum usuário encontrado.</td></tr>
+              ) : usuariosPagina.map((usuario) => (
+                <tr key={usuario.id}>
+                  <td>
+                    <div className="usuarios-identificacao">
+                      {usuario.foto ? (
+                        <img className="usuarios-avatar" src={usuario.foto} alt={`Foto de ${usuario.nome}`} />
+                      ) : (
+                        <span className="usuarios-avatar usuarios-avatar-iniciais">{iniciais(usuario.nome)}</span>
+                      )}
+                      <span>{usuario.nome}</span>
+                    </div>
+                  </td>
+                  <td><a className="usuarios-email" href={`mailto:${usuario.email}`}>{usuario.email}</a></td>
+                  <td>{usuario.cargo}</td>
+                  <td><span className={`usuarios-status ${usuario.status === 'Ativo' ? 'is-ativo' : 'is-inativo'}`}>{usuario.status}</span></td>
+                  <td>
+                    <div className="usuarios-acoes">
+                      <button type="button" className="usuarios-acao editar" onClick={() => abrirEdicao(usuario)} aria-label={`Editar ${usuario.nome}`} title="Editar"><Pencil size={16} /></button>
+                      <button type="button" className="usuarios-acao excluir" onClick={() => excluirUsuario(usuario)} aria-label={`Excluir ${usuario.nome}`} title="Excluir"><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <footer className="usuarios-paginacao">
+          <span>
+            {usuariosFiltrados.length === 0
+              ? 'Mostrando 0 de 0 registros'
+              : `Mostrando ${inicio + 1} a ${Math.min(inicio + ITENS_POR_PAGINA, usuariosFiltrados.length)} de ${usuariosFiltrados.length} registros`}
+          </span>
+          <div className="usuarios-paginas">
+            <button type="button" onClick={() => setPagina((atual) => Math.max(1, atual - 1))} disabled={paginaAtual === 1} aria-label="Página anterior"><ChevronLeft size={18} /></button>
+            <strong>{paginaAtual}</strong>
+            <button type="button" onClick={() => setPagina((atual) => Math.min(totalPaginas, atual + 1))} disabled={paginaAtual === totalPaginas} aria-label="Próxima página"><ChevronRight size={18} /></button>
+          </div>
+        </footer>
+      </section>
+
+      {usuarioSelecionado && (
+        <>
+          <button type="button" className="usuarios-drawer-overlay" onClick={fecharEdicao} aria-label="Fechar edição" />
+          <aside className="usuarios-drawer" aria-label="Editar usuário">
+            <div className="usuarios-drawer-cabecalho">
+              <h3>Editar usuário</h3>
+              <button type="button" onClick={fecharEdicao} aria-label="Fechar"><X size={18} /></button>
+            </div>
+
+            <form onSubmit={salvarUsuario} className="usuarios-formulario">
+              <div className="usuarios-foto-area">
+                <div className="usuarios-foto-preview">
+                  {formulario.foto ? <img src={formulario.foto} alt="Prévia da foto do usuário" /> : <><UserRound size={38} /><span>{iniciais(formulario.nome)}</span></>}
+                </div>
+                <label className="usuarios-foto-botao">
+                  <Camera size={15} /> Alterar foto
+                  <input type="file" accept="image/*" onChange={selecionarFoto} />
+                </label>
+              </div>
+
+              <label className="usuarios-campo">
+                <span>Nome completo</span>
+                <input name="nome" value={formulario.nome} onChange={atualizarCampo} placeholder="Nome completo" required />
+              </label>
+              <label className="usuarios-campo">
+                <span>E-mail</span>
+                <input type="email" name="email" value={formulario.email} onChange={atualizarCampo} placeholder="email@exemplo.com" required />
+              </label>
+              <label className="usuarios-campo">
+                <span>Cargo</span>
+                <select name="cargo" value={formulario.cargo} onChange={atualizarCampo}>
+                  {CARGOS.map((cargo) => <option key={cargo}>{cargo}</option>)}
+                </select>
+              </label>
+              <label className="usuarios-campo">
+                <span>Status</span>
+                <select name="status" value={formulario.status} onChange={atualizarCampo}>
+                  {STATUS.map((status) => <option key={status}>{status}</option>)}
+                </select>
+              </label>
+
+              {erro && <div className="usuarios-alerta">{erro}</div>}
+
+              <div className="usuarios-form-acoes">
+                <button type="button" className="usuarios-btn-cancelar" onClick={fecharEdicao}>Cancelar</button>
+                <button type="submit" className="usuarios-btn-salvar" disabled={salvando}>
+                  {salvando ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </aside>
+        </>
+      )}
+    </div>
+  );
+}
