@@ -13,9 +13,11 @@ import RegistroOperacoes from './components/RegistroOperacoes';
 import './styles/global.css';
 import './styles/App.css';
 
+// Chaves utilizadas no localStorage
 const CHAVE_SESSAO = 'drilltrack_autenticado';
 const CHAVE_PAGINA = 'drilltrack_pagina_ativa';
 
+// Páginas disponíveis no sistema
 const PAGINAS_VALIDAS = [
   'Dashboard',
   'Dados Brutos',
@@ -24,7 +26,7 @@ const PAGINAS_VALIDAS = [
   'Registro de Operações',
 ];
 
-// Aceita também o nome antigo do menu
+// Compatibilidade com o nome antigo
 function normalizarPagina(pagina) {
   if (pagina === 'Registro Operações') {
     return 'Registro de Operações';
@@ -33,6 +35,7 @@ function normalizarPagina(pagina) {
   return pagina;
 }
 
+// Recupera a sessão
 function recuperarSessao() {
   try {
     return localStorage.getItem(CHAVE_SESSAO) === 'true';
@@ -42,6 +45,7 @@ function recuperarSessao() {
   }
 }
 
+// Recupera a última página acessada
 function recuperarPagina() {
   try {
     const paginaSalva = normalizarPagina(
@@ -58,6 +62,7 @@ function recuperarPagina() {
 }
 
 export default function App() {
+  // Estados principais
   const [estaLogado, setEstaLogado] = useState(recuperarSessao);
   const [paginaAtiva, setPaginaAtiva] = useState(recuperarPagina);
   const [mobileAberta, setMobileAberta] = useState(false);
@@ -129,12 +134,12 @@ export default function App() {
     }
   }
 
-  // Exibe login caso não esteja autenticado
+  // Se não estiver logado, exibe a tela de login
   if (!estaLogado) {
     return <Login onLoginSucesso={handleLoginSucesso} />;
   }
 
-  // Páginas que possuem cabeçalho próprio
+  // Essas páginas já possuem cabeçalho próprio
   const possuiCabecalhoProprio =
     paginaAtiva === 'Dados Brutos' ||
     paginaAtiva === 'Registro de Operações';
