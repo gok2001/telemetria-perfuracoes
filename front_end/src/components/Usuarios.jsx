@@ -14,7 +14,7 @@ import '../styles/Usuarios.css';
 
 const API_URL = 'http://localhost:3001/users';
 const ITENS_POR_PAGINA = 5;
-const CARGOS = ['Operador', 'Auxiliar', 'Gestor', 'Administrador'];
+const CARGOS = ['Operador', 'Controlador'];
 const STATUS = ['Ativo', 'Inativo'];
 
 const usuarioVazio = {

@@ -1,0 +1,58 @@
+package br.com.senai.telemetria.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import br.com.senai.telemetria.entity.Sonda;
+import br.com.senai.telemetria.repository.SondaRepository;
+
+import java.util.List;
+
+@Service 
+public class SondaService {
+    private final SondaRepository sondaRepository;
+
+    public SondaService(SondaRepository sondaRepository) {
+        this.sondaRepository = sondaRepository;
+    }
+
+    @Transactional 
+    public Sonda criarSonda(String codigo, String nome) {
+        if (codigo == null || codigo.isBlank()) {
+            throw new IllegalArgumentException("O código é obrigatório");
+        }
+
+        codigo = codigo.trim();
+
+        if (codigo.length() > 50) {
+            throw new IllegalArgumentException("O código deve ter até 50 caracteres");
+        }
+
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("O nome é obrigatório");
+        }
+
+        nome = nome.trim();
+
+        if (nome.length() > 150) {
+            throw new IllegalArgumentException("O nome deve ter até 150 caracteres");
+        }
+
+        if (sondaRepository.existsByCodigo(codigo)) {
+            throw new IllegalArgumentException("Já existe uma sonda com esse código");
+        }
+
+        Sonda sonda = new Sonda();
+
+        sonda.setCodigo(codigo);
+        sonda.setNome(nome);
+        sonda.setStatus("disponivel");
+
+        return sondaRepository.save(sonda);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Sonda> listarSondas() {
+        return sondaRepository.findAll();
+    }
+}

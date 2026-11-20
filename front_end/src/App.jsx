@@ -1,16 +1,15 @@
+
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
-import Sidebar from './components/Sidebar';
-import './styles/global.css';
 
-// Importando as páginas
+import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import DadosBrutos from './components/DadosBrutos';
-import Operacao from './components/Operacao';
 import CadUsuario from './components/CadUsuario';
 import Usuarios from './components/Usuarios';
 import Login from './components/login';
 
+import './styles/global.css';
 import './styles/App.css';
 
 const CHAVE_SESSAO = 'drilltrack_autenticado';
@@ -19,31 +18,34 @@ const CHAVE_PAGINA = 'drilltrack_pagina_ativa';
 const PAGINAS_VALIDAS = [
   'Dashboard',
   'Dados Brutos',
-  'Operação',
-  'Cadastrar Usuário',
   'Usuários',
+  'Cadastrar Usuário',
   'Configuração',
 ];
-
-function recuperarPagina() {
-  try {
-    const paginaSalva = localStorage.getItem(CHAVE_PAGINA);
-    return PAGINAS_VALIDAS.includes(paginaSalva) ? paginaSalva : 'Dashboard';
-  } catch {
-    return 'Dashboard';
-  }
-}
 
 function recuperarSessao() {
   try {
     return localStorage.getItem(CHAVE_SESSAO) === 'true';
-  } catch {
+  } catch (error) {
+    console.error('Erro ao recuperar sessão:', error);
     return false;
   }
 }
 
+function recuperarPagina() {
+  try {
+    const paginaSalva = localStorage.getItem(CHAVE_PAGINA);
+
+    return PAGINAS_VALIDAS.includes(paginaSalva)
+      ? paginaSalva
+      : 'Dashboard';
+  } catch (error) {
+    console.error('Erro ao recuperar página:', error);
+    return 'Dashboard';
+  }
+}
+
 export default function App() {
-  // Recupera a sessão e a última página após atualizar o navegador.
   const [estaLogado, setEstaLogado] = useState(recuperarSessao);
   const [paginaAtiva, setPaginaAtiva] = useState(recuperarPagina);
   const [mobileAberta, setMobileAberta] = useState(false);
@@ -52,8 +54,9 @@ export default function App() {
     try {
       localStorage.setItem(CHAVE_SESSAO, 'true');
     } catch (error) {
-      console.error('Não foi possível salvar a sessão:', error);
+      console.error('Erro ao salvar sessão:', error);
     }
+
     setEstaLogado(true);
   }
 
@@ -67,8 +70,10 @@ export default function App() {
     try {
       localStorage.setItem(CHAVE_PAGINA, paginaValida);
     } catch (error) {
-      console.error('Não foi possível salvar a página atual:', error);
+      console.error('Erro ao salvar página:', error);
     }
+
+    setMobileAberta(false);
   }
 
   function handleSair() {
@@ -76,7 +81,7 @@ export default function App() {
       localStorage.removeItem(CHAVE_SESSAO);
       localStorage.removeItem(CHAVE_PAGINA);
     } catch (error) {
-      console.error('Não foi possível limpar os dados da sessão:', error);
+      console.error('Erro ao limpar sessão:', error);
     }
 
     setEstaLogado(false);
@@ -88,22 +93,27 @@ export default function App() {
     return <Login onLoginSucesso={handleLoginSucesso} />;
   }
 
-  const renderizarPagina = () => {
+  function renderizarPagina() {
     switch (paginaAtiva) {
       case 'Dashboard':
         return <Dashboard />;
+
       case 'Dados Brutos':
         return <DadosBrutos />;
-      case 'Operação':
-        return <Operacao />;
-      case 'Cadastrar Usuário':
-        return <CadUsuario />;
+
       case 'Usuários':
         return <Usuarios />;
+
+      case 'Cadastrar Usuário':
+        return <CadUsuario />;
+
+      case 'Configuração':
+        return <div>Configurações do sistema</div>;
+
       default:
         return <Dashboard />;
     }
-  };
+  }
 
   return (
     <div className="app d-flex">
@@ -126,10 +136,12 @@ export default function App() {
           <Menu size={22} />
         </button>
 
-        <header className="app__cabecalho">
-          <h1>{paginaAtiva}</h1>
-          <p>DrillTrack — Da Sonda à Decisão</p>
-        </header>
+        {paginaAtiva !== 'Dados Brutos' && (
+          <header className="app__cabecalho">
+            <h1>{paginaAtiva}</h1>
+            <p>DrillTrack — Da Sonda à Decisão</p>
+          </header>
+        )}
 
         <section className="app__painel">
           {renderizarPagina()}

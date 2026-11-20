@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "../styles/CadUsuario.css";
 
+const API_URL = "http://localhost:3001/users";
 const CARGOS = ["Operador", "Controlador"];
 
 const FORM_INICIAL = {
@@ -28,6 +29,13 @@ export default function CadUsuario() {
     setErro("");
     setSucesso("");
 
+    const cpf = form.cpf.replace(/\D/g, "");
+
+    if (cpf.length !== 11) {
+      setErro("Informe um CPF válido com 11 números.");
+      return;
+    }
+
     if (form.senha !== form.confirmarSenha) {
       setErro("As senhas não conferem.");
       return;
@@ -36,26 +44,27 @@ export default function CadUsuario() {
     setEnviando(true);
 
     try {
-      // TODO: trocar pelo fetch da API
-      // const resposta = await fetch("http://localhost:3000/usuarios", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({
-      //     nome: form.nome,
-      //     email: form.email,
-      //     cpf: form.cpf,
-      //     senha: form.senha,
-      //     cargo: form.cargo,
-      //   }),
-      // });
-      // if (!resposta.ok) throw new Error("Erro ao cadastrar usuário.");
+      const resposta = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: form.nome.trim(),
+          email: form.email.trim().toLowerCase(),
+          cpf,
+          cargo: form.cargo,
+          status: "Ativo",
+          foto: null,
+        }),
+      });
 
-      console.log("Dados do cadastro:", form);
+      if (!resposta.ok) {
+        throw new Error("Não foi possível cadastrar o usuário. Verifique a API.");
+      }
 
       setSucesso("Usuário cadastrado com sucesso.");
-      setForm(FORM_INICIAL);
+      setForm({ ...FORM_INICIAL });
     } catch (err) {
-      setErro(err.message);
+      setErro(`${err.message} Confira se o JSON Server está executando na porta 3001.`);
     } finally {
       setEnviando(false);
     }

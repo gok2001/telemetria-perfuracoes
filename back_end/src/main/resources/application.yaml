@@ -11,3 +11,7 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+
+server:
+  error:
+    include-message: never
