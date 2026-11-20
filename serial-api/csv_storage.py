@@ -11,7 +11,6 @@ from config import CSV_COLUMNS, CSV_FILE_PATH
 class CsvStorage:
     def __init__(self, file_path: str = CSV_FILE_PATH):
         self.file_path = file_path
-        # Cadeado de segurança para evitar conflito entre escrita (Serial) e leitura (API)
         self._lock = threading.Lock()
         self._initialize_file()
 
@@ -47,26 +46,42 @@ class CsvStorage:
     def get_recent_readings(
         self, limit: int = 50, machine_id: Optional[int] = None
     ) -> tuple[int, List[Dict]]:
-        """
-        Lê o CSV de forma segura e retorna:
-        (total_registros_no_arquivo, lista_das_ultimas_N_leituras)
-        """
+        """Lê as últimas leituras de uma máquina específica ou de todas."""
         with self._lock:
             if not os.path.exists(self.file_path):
                 return 0, []
-
             df = pd.read_csv(self.file_path)
 
         if df.empty:
             return 0, []
 
-        # Se o front-end pediu dados de uma sonda específica (ex: ?machine_id=4)
         if machine_id is not None:
             df = df[df["machine_id"] == machine_id]
 
         total_records = len(df)
-        # Pega apenas as últimas 'limit' linhas e converte para lista de dicionários
-        recent_df = df.tail(limit)
-        records = recent_df.to_dict(orient="records")
-
+        records = df.tail(limit).to_dict(orient="records")
         return total_records, records
+
+    def get_grouped_by_machine(self, limit: int = 20) -> Dict[int, Dict]:
+        """
+        Lê o CSV uma única vez e retorna um dicionário agrupado por machine_id:
+        { 4: { "total_registros": 150, "historico": [...] }, ... }
+        """
+        with self._lock:
+            if not os.path.exists(self.file_path):
+                return {}
+            df = pd.read_csv(self.file_path)
+
+        if df.empty:
+            return {}
+
+        grouped = {}
+        # Agrupa pelo ID da sonda e ordena pelo ID crescente
+        for machine_id, group_df in df.groupby("machine_id", sort=True):
+            m_id = int(machine_id)
+            grouped[m_id] = {
+                "total_registros": len(group_df),
+                "historico": group_df.tail(limit).to_dict(orient="records"),
+            }
+
+        return grouped

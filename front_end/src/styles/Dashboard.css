@@ -1,48 +1,94 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   color: #fff;
   text-align: left;
+}
+
+.dashboard .dash-carrossel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ===== Bloco individual por máquina ===== */
+.dashboard .dash-maquina-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dashboard .dash-maquina-cabecalho {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.dashboard .dash-maquina-cabecalho h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.dashboard .dash-maquina-registros {
+  font-size: 12px;
+  color: #9ca3af;
 }
 
 /* ===== Ícone de alerta (canto superior direito da tela) ===== */
 .dashboard .dash-alerta-botao {
   position: fixed;
-  top: 24px;
+  top: 22px;
   right: 32px;
   z-index: 20;
   display: flex;
-  padding: 4px;
+  align-items: center;
+  padding: 6px;
   color: #ef4444;
-  background: none;
-  border: none;
+  background: #151b20;
+  border: 1px solid #293139;
+  border-radius: 10px;
   cursor: pointer;
+  transition: border-color 0.2s;
 }
 
-.dashboard .dash-alerta-ponto {
+.dashboard .dash-alerta-botao:hover {
+  border-color: #ef4444;
+}
+
+.dashboard .dash-alerta-contador {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 10px;
-  height: 10px;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
   background: #ef4444;
-  border-radius: 50%;
+  border-radius: 999px;
 }
 
-/* ===== Cards ===== */
+/* ===== Cards (Sempre 4 colunas alinhadas) ===== */
 .dashboard .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
 }
 
 .dashboard .dash-card {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 6px;
   min-width: 0;
-  padding: 16px;
+  padding: 14px 16px;
   background: #151b20;
   border: 1px solid #293139;
   border-radius: 12px;
@@ -56,31 +102,52 @@
 
 .dashboard .dash-valor {
   margin: 0;
-  font-size: 32px;
+  font-size: 30px;
   line-height: 1.1;
   color: var(--cor-estado);
 }
 
 .dashboard .dash-unidade {
-  font-size: 18px;
+  font-size: 16px;
+}
+
+/* Lista interna de Média, Mediana e Moda (Controlador) */
+.dashboard .dash-estatisticas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 2px 0;
+}
+
+.dashboard .dash-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.dashboard .dash-stat-item strong {
+  font-size: 14px;
+  color: #f3f4f6;
 }
 
 .dashboard .dash-status {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--cor-estado);
 }
 
-/* Cor de cada estado (vale pro card e pro indicador de conexão) */
+/* Cor de cada estado */
 .dashboard .monitorando { --cor-estado: #3b82f6; }
 .dashboard .normal      { --cor-estado: #22c55e; }
 .dashboard .alerta      { --cor-estado: #eab308; }
 .dashboard .aguardando  { --cor-estado: #9ca3af; }
 
-/* ===== Gráfico ===== */
+/* ===== Gráfico (Altura ajustada para caber inteiro na tela) ===== */
 .dashboard .dash-grafico {
-  position: relative; /* a janela de alertas se posiciona em cima dele */
-  padding: 16px;
+  padding: 14px 16px;
   background: #151b20;
   border: 1px solid #293139;
   border-radius: 12px;
@@ -89,7 +156,7 @@
 .dashboard .dash-grafico-topo {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-size: 12px;
   color: #9ca3af;
 }
@@ -100,7 +167,7 @@
 }
 
 .dashboard .dash-grafico-area {
-  height: clamp(240px, 45vh, 420px);
+  height: clamp(220px, 38vh, 340px);
 }
 
 .dashboard .dash-vazio {
@@ -108,69 +175,177 @@
   justify-content: center;
   align-items: center;
   height: 100%;
+  min-height: 140px;
   margin: 0;
   color: #9ca3af;
 }
 
-/* ===== Janela de alertas (em cima do gráfico) ===== */
-.dashboard .dash-popup {
-  position: absolute;
-  inset: 48px 16px 16px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  background: #0f1418;
-  border: 1px solid #293139;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.dashboard .dash-popup-topo {
+/* ===== Barra inferior de paginação com setas ===== */
+.dashboard .dash-paginacao {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  font-size: 14px;
+  padding: 10px 16px;
+  background: #151b20;
+  border: 1px solid #293139;
+  border-radius: 12px;
+}
+
+.dashboard .dash-seta-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #f3f4f6;
+  background: #0f1418;
+  border: 1px solid #293139;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.dashboard .dash-seta-btn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  background: #1a2229;
+}
+
+.dashboard .dash-seta-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dashboard .dash-paginacao-centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.dashboard .dash-paginacao-texto {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e5e7eb;
+}
+
+.dashboard .dash-paginacao-pontos {
+  display: flex;
+  gap: 8px;
+}
+
+.dashboard .dash-ponto-btn {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  background: #293139;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.dashboard .dash-ponto-btn.ativo {
+  background: #3b82f6;
+  transform: scale(1.2);
+}
+
+/* ===== Modal centralizado de alertas com tabela ===== */
+.dash-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.dash-modal-conteudo {
+  width: min(760px, 100%);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: #151b20;
+  border: 1px solid #293139;
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+}
+
+.dash-modal-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #0f1418;
+  border-bottom: 1px solid #293139;
+}
+
+.dash-modal-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
   color: #eab308;
 }
 
-.dashboard .dash-popup-fechar {
+.dash-popup-fechar {
   display: flex;
-  padding: 0;
+  padding: 4px;
   color: #9ca3af;
   background: none;
   border: none;
   cursor: pointer;
 }
 
-.dashboard .dash-popup-fechar:hover {
+.dash-popup-fechar:hover {
   color: #fff;
 }
 
-.dashboard .dash-popup-lista {
-  flex: 1;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.dash-modal-corpo {
+  padding: 16px 20px;
   overflow-y: auto;
 }
 
-.dashboard .dash-popup-lista li {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr auto;
-  gap: 12px;
-  padding: 8px 0;
+.dash-tabela-alertas {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 13px;
+  text-align: left;
+}
+
+.dash-tabela-alertas th {
+  padding: 10px 12px;
+  font-weight: 600;
+  color: #9ca3af;
   border-bottom: 1px solid #293139;
 }
 
-.dashboard .dash-popup-sensor {
+.dash-tabela-alertas td {
+  padding: 10px 12px;
+  color: #e5e7eb;
+  border-bottom: 1px solid #1f262d;
+}
+
+.dash-tabela-alertas tbody tr:hover {
+  background: #1a2229;
+}
+
+.dash-tabela-alertas .col-maquina {
+  font-weight: 600;
+  color: #fff;
+}
+
+.dash-tabela-alertas .col-sensor {
   color: #eab308;
 }
 
-.dashboard .dash-popup-lista small,
-.dashboard .dash-popup-hora {
+.dash-tabela-alertas .col-leitura small,
+.dash-tabela-alertas .col-data {
   color: #9ca3af;
 }
 
