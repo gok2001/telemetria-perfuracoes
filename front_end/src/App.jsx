@@ -1,59 +1,150 @@
+
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
-import Sidebar from './components/Sidebar';
-import './styles/global.css';
 
-// Importando as páginas
+import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import DadosBrutos from './components/DadosBrutos';
 import CadUsuario from './components/CadUsuario';
 import Usuarios from './components/Usuarios';
-import Login from './components/login'; // Certifique-se que o nome e a letra minúscula/maiúscula batem com o arquivo
+import Login from './components/login';
+import RegistroOperacoes from './components/RegistroOperacoes';
 
-// Importando o CSS
+import './styles/global.css';
 import './styles/App.css';
 
-export default function App() {
-  // Controla se o utilizador está logado ou não (começa como false para mostrar o Login)
-  const [estaLogado, setEstaLogado] = useState(false);
+const CHAVE_SESSAO = 'drilltrack_autenticado';
+const CHAVE_PAGINA = 'drilltrack_pagina_ativa';
 
-  const [paginaAtiva, setPaginaAtiva] = useState('Dashboard');
-  const [mobileAberta, setMobileAberta] = useState(false);
+const PAGINAS_VALIDAS = [
+  'Dashboard',
+  'Dados Brutos',
+  'Usuários',
+  'Cadastrar Usuário',
+  'Registro de Operações',
+];
 
-  // Se NÃO estiver logado, exibe apenas a tela de Login
-  if (!estaLogado) {
-    // Passamos uma função para o Login avisar o App que o login deu certo
-    return <Login onLoginSucesso={() => setEstaLogado(true)} />;
+// Aceita também o nome antigo do menu
+function normalizarPagina(pagina) {
+  if (pagina === 'Registro Operações') {
+    return 'Registro de Operações';
   }
 
-  // Função para decidir qual componente exibir no painel interno
-  const renderizarPagina = () => {
+  return pagina;
+}
+
+function recuperarSessao() {
+  try {
+    return localStorage.getItem(CHAVE_SESSAO) === 'true';
+  } catch (error) {
+    console.error('Erro ao recuperar sessão:', error);
+    return false;
+  }
+}
+
+function recuperarPagina() {
+  try {
+    const paginaSalva = normalizarPagina(
+      localStorage.getItem(CHAVE_PAGINA)
+    );
+
+    return PAGINAS_VALIDAS.includes(paginaSalva)
+      ? paginaSalva
+      : 'Dashboard';
+  } catch (error) {
+    console.error('Erro ao recuperar página:', error);
+    return 'Dashboard';
+  }
+}
+
+export default function App() {
+  const [estaLogado, setEstaLogado] = useState(recuperarSessao);
+  const [paginaAtiva, setPaginaAtiva] = useState(recuperarPagina);
+  const [mobileAberta, setMobileAberta] = useState(false);
+
+  // Login
+  function handleLoginSucesso() {
+    try {
+      localStorage.setItem(CHAVE_SESSAO, 'true');
+    } catch (error) {
+      console.error('Erro ao salvar sessão:', error);
+    }
+
+    setEstaLogado(true);
+  }
+
+  // Navegação entre páginas
+  function handleNavegar(pagina) {
+    const paginaNormalizada = normalizarPagina(pagina);
+
+    const paginaValida = PAGINAS_VALIDAS.includes(paginaNormalizada)
+      ? paginaNormalizada
+      : 'Dashboard';
+
+    setPaginaAtiva(paginaValida);
+
+    try {
+      localStorage.setItem(CHAVE_PAGINA, paginaValida);
+    } catch (error) {
+      console.error('Erro ao salvar página:', error);
+    }
+
+    setMobileAberta(false);
+  }
+
+  // Logout
+  function handleSair() {
+    try {
+      localStorage.removeItem(CHAVE_SESSAO);
+      localStorage.removeItem(CHAVE_PAGINA);
+    } catch (error) {
+      console.error('Erro ao limpar sessão:', error);
+    }
+
+    setEstaLogado(false);
+    setPaginaAtiva('Dashboard');
+    setMobileAberta(false);
+  }
+
+  // Renderização das páginas
+  function renderizarPagina() {
     switch (paginaAtiva) {
       case 'Dashboard':
         return <Dashboard />;
+
       case 'Dados Brutos':
         return <DadosBrutos />;
-      case 'Operação':
-        return <Operacao />;
-      case 'Cadastrar Usuário':
-        return <CadUsuario />;
+
       case 'Usuários':
         return <Usuarios />;
+
+      case 'Cadastrar Usuário':
+        return <CadUsuario />;
+
+      case 'Registro de Operações':
+        return <RegistroOperacoes />;
+
       default:
         return <Dashboard />;
     }
-  };
+  }
 
-  // Se JÁ estiver logado, exibe o layout completo com a Sidebar e o Conteúdo
+  // Exibe login caso não esteja autenticado
+  if (!estaLogado) {
+    return <Login onLoginSucesso={handleLoginSucesso} />;
+  }
+
+  // Páginas que possuem cabeçalho próprio
+  const possuiCabecalhoProprio =
+    paginaAtiva === 'Dados Brutos' ||
+    paginaAtiva === 'Registro de Operações';
+
   return (
     <div className="app d-flex">
       <Sidebar
         paginaAtiva={paginaAtiva}
-        onNavegar={setPaginaAtiva}
-        onSair={() => {
-          setEstaLogado(false);        // volta para a tela de login
-          setPaginaAtiva('Dashboard'); // no próximo login, abre no Dashboard
-        }}
+        onNavegar={handleNavegar}
+        onSair={handleSair}
         mobileAberta={mobileAberta}
         onFecharMobile={() => setMobileAberta(false)}
       />
@@ -69,12 +160,12 @@ export default function App() {
           <Menu size={22} />
         </button>
 
-        {paginaAtiva !== 'Dados Brutos' && (
-        <header className="app__cabecalho">
-        <h1>{paginaAtiva}</h1>
-        <p>DrillTrack — Da Sonda à Decisão</p>
-       </header>
-      )}
+        {!possuiCabecalhoProprio && (
+          <header className="app__cabecalho">
+            <h1>{paginaAtiva}</h1>
+            <p>DrillTrack — Da Sonda à Decisão</p>
+          </header>
+        )}
 
         <section className="app__painel">
           {renderizarPagina()}

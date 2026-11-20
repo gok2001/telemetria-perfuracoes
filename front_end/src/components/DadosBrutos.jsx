@@ -3,62 +3,12 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
+import {
+  buscarDadosBrutos,
+  EQUIPAMENTOS,
+  API_CONFIGURADA,
+} from "../services/dadosBrutosService";
 import "../styles/dadosBrutos.css";
-
-// Esta tela não depende de exports do dadosBrutosService.js.
-// Isso evita incompatibilidades com versões antigas desse serviço.
-// Em front_end/.env, configure VITE_API_URL quando a API real estiver disponível.
-const API_URL = String(import.meta.env.VITE_API_URL ?? "").trim().replace(/\/+$/, "");
-const ROTA_DADOS_BRUTOS = String(
-  import.meta.env.VITE_DADOS_BRUTOS_PATH ?? "10.110.12.44:8001"
-);
-const API_CONFIGURADA = Boolean(API_URL);
-const EQUIPAMENTOS = ["Sonda 01", "Sonda 02", "Sonda 03"];
-
-// Converte APENAS registros vindos do backend, sem gerar exemplos.
-function normalizarLeitura(item, indice) {
-  const origem = item.dataHora ?? item.data_hora ?? item.timestamp ?? item.data;
-  const data = origem ? new Date(origem) : null;
-  const lerNumero = (valor) => {
-    if (valor === null || valor === undefined || valor === "") return null;
-    const numero = Number(valor);
-    return Number.isFinite(numero) ? numero : null;
-  };
-
-  return {
-    id: item.id ?? indice,
-    data: data && !Number.isNaN(data.getTime()) ? data : null,
-    equipamento: String(item.equipamento ?? item.nome_equipamento ?? ""),
-    vibracao: lerNumero(item.vibracao ?? item.vibração),
-    temperatura: lerNumero(item.temperatura),
-    profundidade: lerNumero(item.profundidade),
-    rotacao: lerNumero(item.rotacao ?? item.rotação ?? item.rpm),
-  };
-}
-
-async function buscarDadosBrutos({ signal } = {}) {
-  // Sem endereço de API configurado, mostra a tabela vazia.
-  if (!API_CONFIGURADA) return [];
-
-  const resposta = await fetch(`${API_URL}${ROTA_DADOS_BRUTOS}`, { signal });
-  if (!resposta.ok) {
-    throw new Error(`A API retornou HTTP ${resposta.status}`);
-  }
-
-  const json = await resposta.json();
-  const lista = Array.isArray(json)
-    ? json
-    : json?.dados ?? json?.data ?? json?.registros ?? json?.content;
-
-  if (!Array.isArray(lista)) {
-    throw new Error("Formato de resposta inesperado da API.");
-  }
-
-  return lista
-    .filter((item) => item && typeof item === "object")
-    .map(normalizarLeitura)
-    .sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0));
-}
 
 const POR_PAGINA = 10;
 
@@ -215,7 +165,7 @@ export default function DadosBrutos() {
             onChange={alterar(setEquipamento)}
           >
             <option value="">Todos os equipamentos</option>
-            {[...new Set([...EQUIPAMENTOS, ...dados.map((item) => item.equipamento).filter(Boolean)])].map((item) => (
+            {EQUIPAMENTOS.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>

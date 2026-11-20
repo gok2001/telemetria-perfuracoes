@@ -1,6 +1,9 @@
 
+ // src/services/dadosBrutosService.js
+// Integração com o back-end do DrillTrack.
+// Nenhuma leitura é criada ou simulada pelo front-end.
 
-const API_URL = String(import.meta.env.VITE_API_URL "10.110.12.44:8001")
+const API_URL = String(import.meta.env.VITE_API_URL ?? "")
   .trim()
   .replace(/\/+$/, "");
 
@@ -13,7 +16,7 @@ const ROTA_OPERACOES =
 // Sem endereço configurado, a tabela permanece vazia.
 export const API_CONFIGURADA = Boolean(API_URL);
 
-// Equipamentos previstos no projeto.
+// Equipamentos previstos no projeto
 export const EQUIPAMENTOS = [
   "Sonda 01",
   "Sonda 02",
@@ -63,11 +66,10 @@ function numero(valor) {
   }
 
   const n = Number(valor);
-
   return Number.isFinite(n) ? n : null;
 }
 
-// Adapte os campos conforme a API real.
+// Adapte os nomes dos campos conforme a API real.
 function normalizar(item, indice) {
   const bruto =
     item.dataHora ??
@@ -125,7 +127,7 @@ function validarLista(json) {
   return lista;
 }
 
-// Busca exclusivamente dados reais da API.
+// Busca exclusivamente dados reais da API
 export async function buscarDadosBrutos({ signal } = {}) {
   if (!API_CONFIGURADA) {
     return [];
@@ -153,7 +155,7 @@ export async function buscarDadosBrutos({ signal } = {}) {
     );
 }
 
-// Função disponível para futura integração de operações.
+// Registro confirmado somente após resposta da API
 export async function registrarOperacao({
   operador,
   equipamento,
@@ -171,7 +173,7 @@ export async function registrarOperacao({
 
   if (!API_CONFIGURADA) {
     throw new Error(
-      "Aguardando"
+      "API ainda não configurada. O registro não foi salvo."
     );
   }
 
