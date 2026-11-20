@@ -8,21 +8,34 @@ import DadosBrutos from './components/DadosBrutos';
 import CadUsuario from './components/CadUsuario';
 import Usuarios from './components/Usuarios';
 import Login from './components/login';
+import RegistroOperacoes from './components/RegistroOperacoes';
 
 import './styles/global.css';
 import './styles/App.css';
 
+// Chaves utilizadas no localStorage
 const CHAVE_SESSAO = 'drilltrack_autenticado';
 const CHAVE_PAGINA = 'drilltrack_pagina_ativa';
 
+// Páginas disponíveis no sistema
 const PAGINAS_VALIDAS = [
   'Dashboard',
   'Dados Brutos',
   'Usuários',
   'Cadastrar Usuário',
-  'Configuração',
+  'Registro de Operações',
 ];
 
+// Compatibilidade com o nome antigo
+function normalizarPagina(pagina) {
+  if (pagina === 'Registro Operações') {
+    return 'Registro de Operações';
+  }
+
+  return pagina;
+}
+
+// Recupera a sessão
 function recuperarSessao() {
   try {
     return localStorage.getItem(CHAVE_SESSAO) === 'true';
@@ -32,9 +45,12 @@ function recuperarSessao() {
   }
 }
 
+// Recupera a última página acessada
 function recuperarPagina() {
   try {
-    const paginaSalva = localStorage.getItem(CHAVE_PAGINA);
+    const paginaSalva = normalizarPagina(
+      localStorage.getItem(CHAVE_PAGINA)
+    );
 
     return PAGINAS_VALIDAS.includes(paginaSalva)
       ? paginaSalva
@@ -46,10 +62,12 @@ function recuperarPagina() {
 }
 
 export default function App() {
+  // Estados principais
   const [estaLogado, setEstaLogado] = useState(recuperarSessao);
   const [paginaAtiva, setPaginaAtiva] = useState(recuperarPagina);
   const [mobileAberta, setMobileAberta] = useState(false);
 
+  // Login
   function handleLoginSucesso() {
     try {
       localStorage.setItem(CHAVE_SESSAO, 'true');
@@ -60,9 +78,12 @@ export default function App() {
     setEstaLogado(true);
   }
 
+  // Navegação entre páginas
   function handleNavegar(pagina) {
-    const paginaValida = PAGINAS_VALIDAS.includes(pagina)
-      ? pagina
+    const paginaNormalizada = normalizarPagina(pagina);
+
+    const paginaValida = PAGINAS_VALIDAS.includes(paginaNormalizada)
+      ? paginaNormalizada
       : 'Dashboard';
 
     setPaginaAtiva(paginaValida);
@@ -76,6 +97,7 @@ export default function App() {
     setMobileAberta(false);
   }
 
+  // Logout
   function handleSair() {
     try {
       localStorage.removeItem(CHAVE_SESSAO);
@@ -89,10 +111,7 @@ export default function App() {
     setMobileAberta(false);
   }
 
-  if (!estaLogado) {
-    return <Login onLoginSucesso={handleLoginSucesso} />;
-  }
-
+  // Renderização das páginas
   function renderizarPagina() {
     switch (paginaAtiva) {
       case 'Dashboard':
@@ -107,13 +126,23 @@ export default function App() {
       case 'Cadastrar Usuário':
         return <CadUsuario />;
 
-      case 'Configuração':
-        return <div>Configurações do sistema</div>;
+      case 'Registro de Operações':
+        return <RegistroOperacoes />;
 
       default:
         return <Dashboard />;
     }
   }
+
+  // Se não estiver logado, exibe a tela de login
+  if (!estaLogado) {
+    return <Login onLoginSucesso={handleLoginSucesso} />;
+  }
+
+  // Essas páginas já possuem cabeçalho próprio
+  const possuiCabecalhoProprio =
+    paginaAtiva === 'Dados Brutos' ||
+    paginaAtiva === 'Registro de Operações';
 
   return (
     <div className="app d-flex">
@@ -136,7 +165,7 @@ export default function App() {
           <Menu size={22} />
         </button>
 
-        {paginaAtiva !== 'Dados Brutos' && (
+        {!possuiCabecalhoProprio && (
           <header className="app__cabecalho">
             <h1>{paginaAtiva}</h1>
             <p>DrillTrack — Da Sonda à Decisão</p>

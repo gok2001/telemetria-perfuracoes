@@ -1,0 +1,524 @@
+// src/components/RegistroOperacoes.jsx
+// Três cards para as três sondas cadastradas, sem registros simulados.
+// Os dados continuam vindo das funções do registroOperacoesService.js.
+import { useEffect, useMemo, useState } from "react";
+import { FiEdit, FiX, FiSearch, FiActivity, FiClock, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import {
+  API_OPERACOES_CONFIGURADA,
+  STATUS_OPERACOES,
+  buscarOperadores,
+  buscarSondas,
+  buscarOperacoes,
+  registrarNovaOperacao,
+  rotuloSonda,
+} from "../services/registroOperacoesService";
+import "../styles/dadosBrutos.css";
+import "../styles/registroOperacoes.css";
+
+const HISTORICO_POR_PAGINA = 3;
+
+function normalizarBusca(valor) {
+  return String(valor ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function classeStatus(status) {
+  const chave = normalizarBusca(status);
+  return ["operando", "manutencao", "desligado"].includes(chave)
+    ? `ro-status--${chave}`
+    : "ro-status--indefinido";
+}
+
+function FormularioRegistro({ operadores, sondas, erroCadastros, onFechar, onRegistrar }) {
+  const [operadorSelecionado, setOperadorSelecionado] = useState("");
+  const [sondaSelecionada, setSondaSelecionada] = useState("");
+  const [status, setStatus] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState("");
+
+  const disponivel = API_OPERACOES_CONFIGURADA && operadores.length > 0 && sondas.length > 0;
+
+  useEffect(() => {
+    function fecharComEsc(evento) {
+      if (evento.key === "Escape" && !enviando) onFechar();
+    }
+    window.addEventListener("keydown", fecharComEsc);
+    return () => window.removeEventListener("keydown", fecharComEsc);
+  }, [enviando, onFechar]);
+
+  async function enviar(evento) {
+    evento.preventDefault();
+    const operador = operadores.find((item) => String(item.id) === operadorSelecionado);
+    const sonda = sondas.find((item) => String(item.id) === sondaSelecionada);
+
+    if (!operador || !sonda || !STATUS_OPERACOES.includes(status)) {
+      setErro("Selecione um operador, uma sonda e um status válidos.");
+      return;
+    }
+
+    setEnviando(true);
+    setErro("");
+    try {
+      await onRegistrar({ operadorId: operador.id, sondaId: sonda.id, status });
+    } catch (falha) {
+      setErro(falha.message || "Não foi possível registrar a operação.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <div
+      className="rop-overlay"
+      onMouseDown={(evento) => {
+        if (evento.target === evento.currentTarget && !enviando) onFechar();
+      }}
+    >
+      <form className="rop-box" role="dialog" aria-modal="true" aria-labelledby="rop-titulo" onSubmit={enviar}>
+        <button type="button" className="rop-fechar" aria-label="Fechar formulário" onClick={onFechar} disabled={enviando}>
+          <FiX />
+        </button>
+        <h2 id="rop-titulo" className="rop-titulo">REGISTRAR OPERAÇÕES</h2>
+
+        <div className="rop-campos">
+          <label className="rop-campo">
+            <span className="rop-label-visualmente-oculta">Operador</span>
+            <select
+              className="rop-select"
+              value={operadorSelecionado}
+              onChange={(e) => { setOperadorSelecionado(e.target.value); setErro(""); }}
+              required
+              disabled={enviando || operadores.length === 0}
+            >
+              <option value="" disabled>Operador</option>
+              {operadores.map((item) => (
+                <option key={String(item.id)} value={String(item.id)}>{item.nome}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="rop-campo">
+            <span className="rop-label-visualmente-oculta">Equipamento</span>
+            <select
+              className="rop-select"
+              value={sondaSelecionada}
+              onChange={(e) => { setSondaSelecionada(e.target.value); setErro(""); }}
+              required
+              disabled={enviando || sondas.length === 0}
+            >
+              <option value="" disabled>Equipamento</option>
+              {sondas.map((item) => (
+                <option key={String(item.id)} value={String(item.id)}>{rotuloSonda(item)}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="rop-campo">
+            <span className="rop-label-visualmente-oculta">Status</span>
+            <select
+              className="rop-select"
+              value={status}
+              onChange={(e) => { setStatus(e.target.value); setErro(""); }}
+              required
+              disabled={enviando}
+            >
+              <option value="" disabled>Status</option>
+              {STATUS_OPERACOES.map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {!disponivel && (
+          <p className="ro-form-aviso" role="status">
+            {erroCadastros || "Aguardando Registro"}
+          </p>
+        )}
+        {erro && <p className="rop-erro" role="alert">{erro}</p>}
+        <button type="submit" className="rop-btn" disabled={enviando || !disponivel}>
+          {enviando ? "Registrando..." : "Registrar"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default function RegistroOperacoes() {
+  const [operadores, setOperadores] = useState([]);
+  const [sondas, setSondas] = useState([]);
+  const [registros, setRegistros] = useState([]);
+  const [filtroSonda, setFiltroSonda] = useState("");
+  const [buscaNome, setBuscaNome] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const [recarregar, setRecarregar] = useState(0);
+  const [carregando, setCarregando] = useState(true);
+  const [erros, setErros] = useState({ operadores: "", sondas: "", operacoes: "" });
+  const [sucesso, setSucesso] = useState("");
+  const [modalAberto, setModalAberto] = useState(false);
+
+  useEffect(() => {
+    const controle = new AbortController();
+    setCarregando(true);
+    setErros({ operadores: "", sondas: "", operacoes: "" });
+
+    if (!API_OPERACOES_CONFIGURADA) {
+      setOperadores([]);
+      setSondas([]);
+      setRegistros([]);
+      setCarregando(false);
+      return () => controle.abort();
+    }
+
+    Promise.allSettled([
+      buscarOperadores({ signal: controle.signal }),
+      buscarSondas({ signal: controle.signal }),
+      buscarOperacoes({ signal: controle.signal }),
+    ]).then(([respOperadores, respSondas, respOperacoes]) => {
+      if (controle.signal.aborted) return;
+      setOperadores(respOperadores.status === "fulfilled" ? respOperadores.value : []);
+      setSondas(respSondas.status === "fulfilled" ? respSondas.value : []);
+      setRegistros(respOperacoes.status === "fulfilled" ? respOperacoes.value : []);
+      setErros({
+        operadores: respOperadores.status === "rejected" ? respOperadores.reason?.message || "Erro ao buscar operadores." : "",
+        sondas: respSondas.status === "rejected" ? respSondas.reason?.message || "Erro ao buscar sondas." : "",
+        operacoes: respOperacoes.status === "rejected" ? respOperacoes.reason?.message || "Erro ao buscar operações." : "",
+      });
+    }).finally(() => {
+      if (!controle.signal.aborted) setCarregando(false);
+    });
+
+    return () => controle.abort();
+  }, [recarregar]);
+
+  // Os registros precisam ser entregues pela API do mais recente ao mais antigo.
+  // Cada operação tem seu próprio ID, e nenhuma operação antiga é descartada.
+  // A finalização abaixo é uma PROJEÇÃO visual do histórico; a persistência
+  // da finalização precisa ser feita no Back-End ao criar outra operação.
+  const { cards, historico } = useMemo(() => {
+    const operadoresPorId = new Map(operadores.map((p) => [String(p.id), p.nome]));
+    const exibidas = sondas.slice(0, 3);
+    const anteriores = [];
+
+    const atuais = exibidas.map((sonda) => {
+      const operacoesDaSonda = registros
+        .map((registro, indiceOriginal) => ({ registro, indiceOriginal }))
+        .filter(({ registro }) => {
+          if (registro.sondaId !== null && registro.sondaId !== undefined) {
+            return String(registro.sondaId) === String(sonda.id);
+          }
+          return Boolean(registro.sondaNome) &&
+            normalizarBusca(registro.sondaNome) === normalizarBusca(sonda.nome);
+        });
+
+      // Só a última operação permanece no card principal.
+      // Se a API já marcou a última como Finalizada, não há operação ativa.
+      const ultima = operacoesDaSonda[0]?.registro;
+      const ultimaFoiFinalizada = normalizarBusca(ultima?.status) === "finalizado" ||
+        normalizarBusca(ultima?.status) === "finalizada";
+      const operacaoAtual = ultimaFoiFinalizada ? null : ultima;
+      const indiceHistorico = operacaoAtual ? 1 : 0;
+
+      operacoesDaSonda.slice(indiceHistorico).forEach(({ registro, indiceOriginal }) => {
+        anteriores.push({
+          chave: `${sonda.id}-${registro.id ?? indiceOriginal}-${indiceOriginal}`,
+          indiceOriginal,
+          sonda,
+          operadorNome: operadoresPorId.get(String(registro.operadorId)) ||
+            registro.operadorNome || "Não informado",
+          statusOriginal: registro.status || "Não informado",
+          // Um registro anterior é exibido como Finalizado, mas a alteração
+          // definitiva desse status é responsabilidade da API / banco.
+          statusHistorico: "Finalizado",
+        });
+      });
+
+      return {
+        id: String(sonda.id),
+        sonda,
+        nomeOperador: operacaoAtual
+          ? operadoresPorId.get(String(operacaoAtual.operadorId)) ||
+            operacaoAtual.operadorNome || "Não informado"
+          : "Nenhuma operação em andamento",
+        status: operacaoAtual?.status || "",
+        temOperacao: Boolean(operacaoAtual),
+      };
+    });
+
+    // Respeita a ordenação entregue pela API (mais recentes primeiro).
+    anteriores.sort((a, b) => a.indiceOriginal - b.indiceOriginal);
+    return { cards: atuais, historico: anteriores };
+  }, [operadores, sondas, registros]);
+
+  const termoBusca = normalizarBusca(buscaNome);
+  const correspondeFiltro = (item, nomeOperador) =>
+    (!filtroSonda || String(item.sonda.id) === filtroSonda) &&
+    (!termoBusca || normalizarBusca(nomeOperador).includes(termoBusca));
+
+  const cardsFiltrados = cards.filter((item) =>
+    correspondeFiltro(item, item.nomeOperador)
+  );
+  const historicoFiltrado = historico.filter((item) =>
+    correspondeFiltro(item, item.operadorNome)
+  );
+
+  // Mantém os três espaços quando ainda não existem sondas cadastradas.
+  const comFiltro = Boolean(filtroSonda || termoBusca);
+  const vazios = !comFiltro ? Math.max(0, 3 - cardsFiltrados.length) : 0;
+
+  // Página 1 = operações atuais; páginas 2, 3... = registros anteriores.
+  // Mesmo sem históricos, a segunda página pode ser aberta para consultar o estado vazio.
+  const totalPaginas = Math.max(
+    2,
+    1 + Math.ceil(historicoFiltrado.length / HISTORICO_POR_PAGINA)
+  );
+  const paginaAtual = Math.min(pagina, totalPaginas);
+  const vendoHistorico = paginaAtual > 1;
+  const inicioHistorico = (paginaAtual - 2) * HISTORICO_POR_PAGINA;
+  const historicoDaPagina = vendoHistorico
+    ? historicoFiltrado.slice(inicioHistorico, inicioHistorico + HISTORICO_POR_PAGINA)
+    : [];
+
+  function mudarPagina(novaPagina) {
+    setPagina(Math.max(1, Math.min(totalPaginas, novaPagina)));
+  }
+
+  function alterarFiltros(setter, valor) {
+    setter(valor);
+    setPagina(1);
+  }
+
+  async function salvar(dados) {
+    await registrarNovaOperacao(dados);
+    setModalAberto(false);
+    setPagina(1);
+    setSucesso("Operação registrada com sucesso no Back-End.");
+    setRecarregar((n) => n + 1);
+  }
+
+  const erroCadastros = [erros.operadores, erros.sondas].filter(Boolean).join(" ");
+  const erroGeral = [erros.operadores, erros.sondas, erros.operacoes].filter(Boolean).join(" ");
+
+  return (
+    <div className="dados-page ro-page">
+      <div className="dados-content">
+        <header className="dados-header">
+          <div>
+            <h1 className="dados-title">Registro de Operações</h1>
+            <p className="dados-subtitle">Acompanhe o operador, equipamento e status de cada sonda.</p>
+          </div>
+          <button
+            type="button"
+            className="dados-btn-registro"
+            onClick={() => { setSucesso(""); setModalAberto(true); }}
+          >
+            Registrar Operação <FiEdit aria-hidden="true" />
+          </button>
+        </header>
+
+        <section className="dados-filtros" aria-label="Filtros de operação">
+          <select
+            className="filtro-box filtro-select"
+            aria-label="Filtrar por equipamento"
+            value={filtroSonda}
+            onChange={(e) => alterarFiltros(setFiltroSonda, e.target.value)}
+          >
+            <option value="">Todos os equipamentos</option>
+            {sondas.slice(0, 3).map((sonda) => (
+              <option key={String(sonda.id)} value={String(sonda.id)}>{rotuloSonda(sonda)}</option>
+            ))}
+          </select>
+          <div className="ro-busca">
+            <input
+              type="search"
+              className="ro-busca-input"
+              aria-label="Buscar pelo nome do operador"
+              placeholder="Buscar operador..."
+              value={buscaNome}
+              onChange={(e) => alterarFiltros(setBuscaNome, e.target.value)}
+            />
+            <FiSearch className="ro-busca-icone" aria-hidden="true" />
+          </div>
+        </section>
+
+        {sucesso && <p className="ro-sucesso" role="status">{sucesso}</p>}
+        {!API_OPERACOES_CONFIGURADA && (
+          <p className="ro-api-aviso" role="status">API ainda não configurada. Os cards serão preenchidos quando houver conexão.</p>
+        )}
+        {erroGeral && (
+          <div className="ro-aviso-erro" role="alert">
+            <span>Não foi possível carregar todas as informações. {erroGeral}</span>
+            <button type="button" className="btn-tentar" onClick={() => setRecarregar((n) => n + 1)}>Tentar novamente</button>
+          </div>
+        )}
+        {sondas.length > 3 && (
+          <p className="ro-api-aviso">Existem {sondas.length} sondas cadastradas. Esta tela está configurada para exibir as três primeiras.</p>
+        )}
+
+        {/* As páginas são exibidas alternativamente, nunca uma embaixo da outra. */}
+        <section className="ro-visualizacao" aria-label={vendoHistorico ? "Registros anteriores" : "Operações atuais"}>
+          <div className="ro-visualizacao__topo">
+            <div>
+              <h2 className="ro-visualizacao__titulo">
+                {vendoHistorico ? <><FiClock aria-hidden="true" /> Registros anteriores</> : "Operações atuais"}
+              </h2>
+              <p className="ro-visualizacao__descricao">
+                {vendoHistorico
+                  ? "Operações anteriores das sondas, exibidas como finalizadas."
+                  : "Acompanhe as últimas operações de cada sonda cadastrada."}
+              </p>
+            </div>
+            {!vendoHistorico && (
+              <button type="button" className="ro-atalho" onClick={() => mudarPagina(2)}>
+                Ver registros anteriores <FiChevronRight aria-hidden="true" />
+              </button>
+            )}
+            {vendoHistorico && (
+              <button type="button" className="ro-atalho" onClick={() => mudarPagina(1)}>
+                <FiChevronLeft aria-hidden="true" /> Voltar aos cards atuais
+              </button>
+            )}
+          </div>
+
+          {!vendoHistorico ? (
+            <>
+              <div className="ro-cards" aria-label="Cards das sondas" aria-busy={carregando}>
+                {cardsFiltrados.map((item) => (
+                  <article className="ro-card" key={item.id}>
+                    <div className="ro-card__topo">
+                      <div className="ro-card__identidade">
+                        <span className="ro-card__icone" aria-hidden="true"><FiActivity /></span>
+                        <div>
+                          <span className="ro-card__rotulo">SONDA CADASTRADA</span>
+                          <h3 className="ro-card__titulo">{item.sonda.nome}</h3>
+                        </div>
+                      </div>
+                      <span className="ro-card__id">ID {item.sonda.id}</span>
+                    </div>
+                    <div className="ro-card__campos">
+                      <div className="ro-card__linha">
+                        <span>Operador</span>
+                        <strong>{erros.operacoes ? "Indisponível" : item.nomeOperador}</strong>
+                      </div>
+                      <div className="ro-card__linha">
+                        <span>Equipamento</span>
+                        <strong>{rotuloSonda(item.sonda)}</strong>
+                      </div>
+                      <div className="ro-card__linha">
+                        <span>Status</span>
+                        <strong className={`ro-status ${classeStatus(item.status)}`}>
+                          {erros.operacoes ? "Indisponível" : item.temOperacao ? item.status || "Não informado" : "Sem registro"}
+                        </strong>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+
+                {Array.from({ length: vazios }, (_, indice) => (
+                  <article className="ro-card ro-card--vazio" key={`vazio-${indice}`}>
+                    <div className="ro-card__topo">
+                      <span className="ro-card__icone" aria-hidden="true"><FiActivity /></span>
+                      <h3 className="ro-card__titulo">
+                        {carregando ? "Carregando sonda..." : "Aguardando sonda cadastrada"}
+                      </h3>
+                    </div>
+                    <div className="ro-card__campos">
+                      <div className="ro-card__linha"><span>Operador</span><strong>—</strong></div>
+                      <div className="ro-card__linha"><span>Equipamento</span><strong>—</strong></div>
+                      <div className="ro-card__linha"><span>Status</span><strong>—</strong></div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              {!carregando && comFiltro && cardsFiltrados.length === 0 && (
+                <p className="ro-resultado-vazio">Nenhuma sonda encontrada para os filtros selecionados.</p>
+              )}
+            </>
+          ) : (
+            historicoDaPagina.length > 0 ? (
+              <div className="ro-cards ro-cards--historico" aria-label="Cards de operações anteriores" aria-busy={carregando}>
+                {historicoDaPagina.map((item) => (
+                  <article className="ro-card ro-card--historico" key={item.chave}>
+                    <div className="ro-card__topo">
+                      <div className="ro-card__identidade">
+                        <span className="ro-card__icone" aria-hidden="true"><FiClock /></span>
+                        <div>
+                          <span className="ro-card__rotulo">OPERAÇÃO ANTERIOR</span>
+                          <h3 className="ro-card__titulo">{item.sonda.nome}</h3>
+                        </div>
+                      </div>
+                      <span className="ro-card__id">ID {item.sonda.id}</span>
+                    </div>
+                    <div className="ro-card__campos">
+                      <div className="ro-card__linha">
+                        <span>Operador</span><strong>{item.operadorNome}</strong>
+                      </div>
+                      <div className="ro-card__linha">
+                        <span>Equipamento</span><strong>{rotuloSonda(item.sonda)}</strong>
+                      </div>
+                      <div className="ro-card__linha">
+                        <span>Situação do registro</span>
+                        <strong className="ro-status ro-status--finalizado">{item.statusHistorico}</strong>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="ro-historico__vazio" role="status">
+                {carregando
+                  ? "Carregando histórico..."
+                  : erros.operacoes
+                  ? "Não foi possível consultar as operações anteriores."
+                  : !API_OPERACOES_CONFIGURADA
+                  ? "O histórico aparecerá aqui quando a API estiver disponível."
+                  : "Nenhum registro anterior para os filtros selecionados."}
+              </div>
+            )
+          )}
+        </section>
+
+        {/* Navegação horizontal entre os cards atuais e as páginas do histórico. */}
+        <footer className="ro-paginacao">
+          <span>
+            {vendoHistorico
+              ? `${historicoFiltrado.length} ${historicoFiltrado.length === 1 ? "registro anterior" : "registros anteriores"}`
+              : `${cards.filter((item) => item.temOperacao).length} ${cards.filter((item) => item.temOperacao).length === 1 ? "operação atual" : "operações atuais"}`}
+          </span>
+          <nav className="ro-paginacao__controles" aria-label="Páginas do Registro de Operações">
+            <button
+              type="button"
+              aria-label="Voltar uma página"
+              onClick={() => mudarPagina(paginaAtual - 1)}
+              disabled={paginaAtual === 1}
+            >
+              <FiChevronLeft />
+            </button>
+            <span aria-live="polite">{paginaAtual} / {totalPaginas}</span>
+            <button
+              type="button"
+              aria-label="Avançar uma página"
+              onClick={() => mudarPagina(paginaAtual + 1)}
+              disabled={paginaAtual === totalPaginas}
+            >
+              <FiChevronRight />
+            </button>
+          </nav>
+        </footer>
+      </div>
+
+      {modalAberto && (
+        <FormularioRegistro
+          operadores={operadores}
+          sondas={sondas.slice(0, 3)}
+          erroCadastros={erroCadastros}
+          onFechar={() => setModalAberto(false)}
+          onRegistrar={salvar}
+        />
+      )}
+    </div>
+  );
+}

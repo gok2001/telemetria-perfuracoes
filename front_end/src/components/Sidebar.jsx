@@ -5,7 +5,7 @@ import {
   Database,
   Users,
   UserRoundPlus,
-  Settings,
+  ClipboardList,
   LogOut,
 } from 'lucide-react';
 
@@ -17,7 +17,7 @@ const itensMenu = [
   { nome: 'Dados Brutos', icone: Database },
   { nome: 'Usuários', icone: Users },
   { nome: 'Cadastrar Usuário', icone: UserRoundPlus },
-  { nome: 'Configuração', icone: Settings },
+  { nome: 'Registro Operações', icone: ClipboardList },
 ];
 
 function Sidebar({

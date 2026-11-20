@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
 import {
-  FiEdit,
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
 import {
   buscarDadosBrutos,
-  registrarOperacao,
   EQUIPAMENTOS,
+  API_CONFIGURADA,
 } from "../services/dadosBrutosService";
-import RegistroOperacaoModal from "./RegistroOperacaoModal";
 import "../styles/dadosBrutos.css";
 
 const POR_PAGINA = 10;
@@ -64,9 +62,6 @@ export default function DadosBrutos() {
   const [erroApi, setErroApi] = useState("");
   const [recarregar, setRecarregar] = useState(0); // muda para buscar de novo
 
-  // Registro de operação
-  const [modalAberto, setModalAberto] = useState(false);
-
   // Filtros
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
@@ -91,13 +86,6 @@ export default function DadosBrutos() {
 
     return () => controle.abort();
   }, [recarregar]);
-
-  // Chamado pelo pop-up de Registro Operação
-  async function registrar(dadosForm) {
-    await registrarOperacao(dadosForm); // se falhar, o pop-up mostra o erro
-    setModalAberto(false);
-    setRecarregar((n) => n + 1); // busca a lista de novo, já com o registro
-  }
 
   // Ao mudar qualquer filtro, volta para a página 1
   function alterar(setter) {
@@ -131,7 +119,11 @@ export default function DadosBrutos() {
     : erroApi
     ? erroApi
     : filtrados.length === 0
-    ? "Nenhum registro encontrado."
+    ? (!API_CONFIGURADA
+        ? "Aguardando dados reais: API ainda não configurada."
+        : dados.length === 0
+        ? "Aguardando leituras da API."
+        : "Nenhum registro encontrado para os filtros selecionados.")
     : "";
 
   return (
@@ -146,14 +138,6 @@ export default function DadosBrutos() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="dados-btn-registro"
-            onClick={() => setModalAberto(true)}
-          >
-            Registro Operação
-            <FiEdit />
-          </button>
         </header>
 
         {/* ===== Parte 2: filtros ===== */}
@@ -246,7 +230,7 @@ export default function DadosBrutos() {
             {carregando
               ? "Carregando registros..."
               : filtrados.length === 0
-              ? "Nenhum registro encontrado."
+              ? "0 registros recebidos."
               : `Mostrando de ${inicio + 1} a ${
                   inicio + visiveis.length
                 } de ${filtrados.length} registros.`}
@@ -294,15 +278,6 @@ export default function DadosBrutos() {
         </footer>
       </div>
 
-      {/* Pop-up de Registro Operação */}
-      {modalAberto && (
-        <RegistroOperacaoModal
-          onFechar={() => setModalAberto(false)}
-          onRegistrar={registrar}
-          operadoresDisponiveis={[...new Set(dados.map((item) => item.operador?.trim()).filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b, "pt-BR"))}
-        />
-      )}
     </div>
   );
 }
