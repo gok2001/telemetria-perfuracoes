@@ -17,7 +17,7 @@ const itensMenu = [
   { nome: 'Dados Brutos', icone: Database },
   { nome: 'Usuários', icone: Users },
   { nome: 'Cadastrar Usuário', icone: UserRoundPlus },
-  { nome: 'Configuração', icone: Settings },
+  { nome: 'Registro Operações', icone: Settings },
 ];
 
 function Sidebar({

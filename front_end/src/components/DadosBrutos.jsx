@@ -1,16 +1,64 @@
 import { useState, useEffect } from "react";
 import {
-  FiEdit,
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
-import {
-  buscarDadosBrutos,
-  registrarOperacao,
-  EQUIPAMENTOS,
-} from "../services/dadosBrutosService";
-import RegistroOperacaoModal from "./RegistroOperacaoModal";
 import "../styles/dadosBrutos.css";
+
+// Esta tela não depende de exports do dadosBrutosService.js.
+// Isso evita incompatibilidades com versões antigas desse serviço.
+// Em front_end/.env, configure VITE_API_URL quando a API real estiver disponível.
+const API_URL = String(import.meta.env.VITE_API_URL ?? "").trim().replace(/\/+$/, "");
+const ROTA_DADOS_BRUTOS = String(
+  import.meta.env.VITE_DADOS_BRUTOS_PATH ?? "10.110.12.44:8001"
+);
+const API_CONFIGURADA = Boolean(API_URL);
+const EQUIPAMENTOS = ["Sonda 01", "Sonda 02", "Sonda 03"];
+
+// Converte APENAS registros vindos do backend, sem gerar exemplos.
+function normalizarLeitura(item, indice) {
+  const origem = item.dataHora ?? item.data_hora ?? item.timestamp ?? item.data;
+  const data = origem ? new Date(origem) : null;
+  const lerNumero = (valor) => {
+    if (valor === null || valor === undefined || valor === "") return null;
+    const numero = Number(valor);
+    return Number.isFinite(numero) ? numero : null;
+  };
+
+  return {
+    id: item.id ?? indice,
+    data: data && !Number.isNaN(data.getTime()) ? data : null,
+    equipamento: String(item.equipamento ?? item.nome_equipamento ?? ""),
+    vibracao: lerNumero(item.vibracao ?? item.vibração),
+    temperatura: lerNumero(item.temperatura),
+    profundidade: lerNumero(item.profundidade),
+    rotacao: lerNumero(item.rotacao ?? item.rotação ?? item.rpm),
+  };
+}
+
+async function buscarDadosBrutos({ signal } = {}) {
+  // Sem endereço de API configurado, mostra a tabela vazia.
+  if (!API_CONFIGURADA) return [];
+
+  const resposta = await fetch(`${API_URL}${ROTA_DADOS_BRUTOS}`, { signal });
+  if (!resposta.ok) {
+    throw new Error(`A API retornou HTTP ${resposta.status}`);
+  }
+
+  const json = await resposta.json();
+  const lista = Array.isArray(json)
+    ? json
+    : json?.dados ?? json?.data ?? json?.registros ?? json?.content;
+
+  if (!Array.isArray(lista)) {
+    throw new Error("Formato de resposta inesperado da API.");
+  }
+
+  return lista
+    .filter((item) => item && typeof item === "object")
+    .map(normalizarLeitura)
+    .sort((a, b) => (b.data?.getTime() ?? 0) - (a.data?.getTime() ?? 0));
+}
 
 const POR_PAGINA = 10;
 
@@ -64,9 +112,6 @@ export default function DadosBrutos() {
   const [erroApi, setErroApi] = useState("");
   const [recarregar, setRecarregar] = useState(0); // muda para buscar de novo
 
-  // Registro de operação
-  const [modalAberto, setModalAberto] = useState(false);
-
   // Filtros
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
@@ -91,13 +136,6 @@ export default function DadosBrutos() {
 
     return () => controle.abort();
   }, [recarregar]);
-
-  // Chamado pelo pop-up de Registro Operação
-  async function registrar(dadosForm) {
-    await registrarOperacao(dadosForm); // se falhar, o pop-up mostra o erro
-    setModalAberto(false);
-    setRecarregar((n) => n + 1); // busca a lista de novo, já com o registro
-  }
 
   // Ao mudar qualquer filtro, volta para a página 1
   function alterar(setter) {
@@ -131,7 +169,11 @@ export default function DadosBrutos() {
     : erroApi
     ? erroApi
     : filtrados.length === 0
-    ? "Nenhum registro encontrado."
+    ? (!API_CONFIGURADA
+        ? "Aguardando dados reais: API ainda não configurada."
+        : dados.length === 0
+        ? "Aguardando leituras da API."
+        : "Nenhum registro encontrado para os filtros selecionados.")
     : "";
 
   return (
@@ -146,14 +188,6 @@ export default function DadosBrutos() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="dados-btn-registro"
-            onClick={() => setModalAberto(true)}
-          >
-            Registro Operação
-            <FiEdit />
-          </button>
         </header>
 
         {/* ===== Parte 2: filtros ===== */}
@@ -181,7 +215,7 @@ export default function DadosBrutos() {
             onChange={alterar(setEquipamento)}
           >
             <option value="">Todos os equipamentos</option>
-            {EQUIPAMENTOS.map((item) => (
+            {[...new Set([...EQUIPAMENTOS, ...dados.map((item) => item.equipamento).filter(Boolean)])].map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
@@ -246,7 +280,7 @@ export default function DadosBrutos() {
             {carregando
               ? "Carregando registros..."
               : filtrados.length === 0
-              ? "Nenhum registro encontrado."
+              ? "0 registros recebidos."
               : `Mostrando de ${inicio + 1} a ${
                   inicio + visiveis.length
                 } de ${filtrados.length} registros.`}
@@ -294,15 +328,6 @@ export default function DadosBrutos() {
         </footer>
       </div>
 
-      {/* Pop-up de Registro Operação */}
-      {modalAberto && (
-        <RegistroOperacaoModal
-          onFechar={() => setModalAberto(false)}
-          onRegistrar={registrar}
-          operadoresDisponiveis={[...new Set(dados.map((item) => item.operador?.trim()).filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b, "pt-BR"))}
-        />
-      )}
     </div>
   );
 }
