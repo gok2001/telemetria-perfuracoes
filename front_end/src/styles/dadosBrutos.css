@@ -1,0 +1,473 @@
+/* ===== Base da página ===== */
+.dados-page {
+  width: 100%;
+}
+
+.dados-content {
+  padding: 0; /* o espaço já vem do painel do App */
+}
+
+/* ===== Parte 1: cabeçalho ===== */
+.dados-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dados-title {
+  color: var(--text);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dados-subtitle {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  margin: 0.25rem 0 0;
+}
+
+.dados-btn-registro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: var(--primary);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dados-btn-registro:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ===== Parte 2: filtros ===== */
+.dados-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.filtro-box {
+  height: 38px;
+  background-color: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  outline: none;
+}
+
+.filtro-box:focus,
+.filtro-box:focus-within {
+  border-color: var(--primary);
+}
+
+.filtro-data {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+}
+
+.filtro-data input {
+  background: transparent;
+  color: var(--text);
+  border: none;
+  outline: none;
+  font-size: 0.75rem;
+  color-scheme: dark; /* deixa o ícone do calendário claro */
+}
+
+.filtro-select {
+  min-width: 170px;
+  padding: 0 2rem 0 0.75rem;
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+.filtro-select option {
+  background-color: var(--card);
+  color: var(--text);
+}
+
+/* ===== Parte 3: tabela ===== */
+/* As linhas esticam para ocupar toda a altura da caixa (como no Figma),
+   então não sobra espaço vazio embaixo da tabela. */
+.dados-tabela-wrap {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: auto;
+}
+
+.dados-tabela {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 600px;
+  color: var(--text);
+  font-size: 0.75rem;
+}
+
+.dados-tabela thead {
+  display: block;
+  flex-shrink: 0;
+}
+
+.dados-tabela tbody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dados-tabela tr {
+  display: grid;
+  /* Seis colunas: data/hora, equipamento, vibração, temperatura, profundidade e rotação */
+  grid-template-columns: 1.3fr 1fr 1fr 1fr 1.2fr 1fr;
+}
+
+.dados-tabela thead tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.dados-tabela tbody tr {
+  flex: 1 1 40px;
+  min-height: 30px;
+  max-height: 64px;
+}
+
+.dados-tabela tbody tr + tr {
+  border-top: 1px solid var(--border);
+}
+
+.dados-tabela th,
+.dados-tabela td {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.dados-tabela th {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+  font-weight: 700;
+}
+
+/* linhas vazias e mensagens ocupam a linha toda */
+.dados-tabela td[colspan] {
+  grid-column: 1 / -1;
+}
+
+.dados-tabela tbody tr:hover:not(.linha-vazia) {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* ===== Parte 4: paginação ===== */
+.dados-rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.dados-contagem {
+  color: var(--text);
+  font-size: 0.7rem;
+  margin: 0;
+}
+
+.dados-paginacao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pag-seta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  border: none;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.pag-seta:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pag-num {
+  min-width: 24px;
+  height: 24px;
+  background: none;
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.pag-num--ativo {
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+.pag-pontos {
+  color: var(--text);
+  font-size: 0.7rem;
+}
+
+/* ===== Mensagem de carregando / erro / sem registros ===== */
+.linha-aviso {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.btn-tentar {
+  margin-left: 0.75rem;
+  background-color: var(--primary);
+  color: var(--text);
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.btn-tentar:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ===== Registro de Operações: visual da referência enviada ===== */
+.rop-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 1000;
+}
+
+.rop-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 410px;
+  min-height: 550px;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 64px 28px 43px;
+  background: #10171d;
+  border: none;
+  border-radius: 30px;
+  color: #fff;
+}
+
+.rop-fechar {
+  position: absolute;
+  top: 17px;
+  right: 19px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #a3aab1;
+  font-size: 19px;
+  cursor: pointer;
+}
+
+.rop-fechar:hover { color: #fff; }
+.rop-fechar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rop-titulo {
+  margin: 0 0 54px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.rop-campos {
+  display: flex;
+  flex-direction: column;
+  gap: 55px;
+  width: 100%;
+  max-width: 250px;
+}
+
+.rop-campo { width: 100%; }
+
+.rop-label-visualmente-oculta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rop-select {
+  display: block;
+  width: 100%;
+  height: 50px;
+  padding: 0 38px 0 19px;
+  appearance: none;
+  background-color: #1a2228;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 23px center;
+  border: 0;
+  border-left: 2px solid #c0000b;
+  border-radius: 10px;
+  outline: none;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 650;
+  text-align: center;
+  text-align-last: center;
+  cursor: pointer;
+}
+
+.rop-select:hover { background-color: #222c33; }
+.rop-select:focus-visible, .rop-outro-operador:focus-visible {
+  outline: 2px solid #c0000b;
+  outline-offset: 2px;
+}
+.rop-select:disabled { opacity: 0.6; cursor: wait; }
+.rop-select option { background-color: #1a2228; color: #fff; }
+
+.rop-outro-operador {
+  width: 100%;
+  height: 44px;
+  margin-top: 12px;
+  padding: 0 12px;
+  background: #1a2228;
+  border: 1px solid #c0000b;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+}
+.rop-outro-operador::placeholder { color: #b2b8bd; }
+
+.rop-erro {
+  max-width: 280px;
+  margin: 16px 0 -30px;
+  color: #ff7373;
+  font-size: 12px;
+  text-align: center;
+}
+
+.rop-btn {
+  display: block;
+  width: 100%;
+  max-width: 242px;
+  min-height: 41px;
+  margin-top: 58px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #b9080f;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.rop-btn:hover:not(:disabled) { background: #d20d15; }
+.rop-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.rop-btn:disabled { opacity: 0.65; cursor: wait; }
+
+@media (max-width: 440px), (max-height: 610px) {
+  .rop-box { min-height: auto; padding: 56px 22px 32px; }
+  .rop-titulo { margin-bottom: 34px; }
+  .rop-campos { gap: 27px; }
+  .rop-btn { margin-top: 35px; }
+}
+
+/* ===== Dados Brutos sem rolagem da página (telas de computador) ===== */
+@media (min-width: 768px) and (min-height: 640px) {
+  .app:has(.dados-page) {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .app:has(.dados-page) .app__conteudo {
+    height: 100vh;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .app:has(.dados-page) .app__painel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .dados-page {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dados-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dados-header,
+  .dados-filtros,
+  .dados-rodape {
+    flex-shrink: 0;
+  }
+
+  /* se a tela for muito baixa, só a tabela rola por dentro */
+  .dados-tabela-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+}
