@@ -124,3 +124,58 @@ body {
     padding: 12px;
   }
 }
+
+/* ===== Dashboard Fixa com Scroll Interno Estilizado ===== */
+.app--dashboard-fixo {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.app--dashboard-fixo .app__conteudo {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app--dashboard-fixo .app__cabecalho {
+  flex-shrink: 0;
+}
+
+.app--dashboard-fixo .app__painel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app--dashboard-fixo .dashboard {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #2f3942 #11181e;
+}
+
+/* Estilização da barra de rolagem (Chrome, Edge, Brave) */
+.app--dashboard-fixo .dashboard::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app--dashboard-fixo .dashboard::-webkit-scrollbar-track {
+  background: #11181e;
+  border-radius: 999px;
+}
+
+.app--dashboard-fixo .dashboard::-webkit-scrollbar-thumb {
+  background: #2f3942;
+  border-radius: 999px;
+}
+
+.app--dashboard-fixo .dashboard::-webkit-scrollbar-thumb:hover {
+  background: #b30e0e;
+}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Menu } from 'lucide-react';
 
@@ -9,15 +8,16 @@ import CadUsuario from './components/CadUsuario';
 import Usuarios from './components/Usuarios';
 import Login from './components/login';
 import RegistroOperacoes from './components/RegistroOperacoes';
+import Operacao from './components/Operacao';
 
 import './styles/global.css';
 import './styles/App.css';
 
 // Chaves utilizadas no localStorage
-const CHAVE_SESSAO = 'drilltrack_autenticado';
+const CHAVE_USUARIO = 'drilltrack_usuario';
 const CHAVE_PAGINA = 'drilltrack_pagina_ativa';
 
-// Páginas disponíveis no sistema
+// Páginas disponíveis no sistema (Controlador)
 const PAGINAS_VALIDAS = [
   'Dashboard',
   'Dados Brutos',
@@ -35,13 +35,14 @@ function normalizarPagina(pagina) {
   return pagina;
 }
 
-// Recupera a sessão
-function recuperarSessao() {
+// Recupera os dados do usuário autenticado
+function recuperarUsuario() {
   try {
-    return localStorage.getItem(CHAVE_SESSAO) === 'true';
+    const salvo = localStorage.getItem(CHAVE_USUARIO);
+    return salvo ? JSON.parse(salvo) : null;
   } catch (error) {
-    console.error('Erro ao recuperar sessão:', error);
-    return false;
+    console.error('Erro ao recuperar usuário:', error);
+    return null;
   }
 }
 
@@ -63,19 +64,21 @@ function recuperarPagina() {
 
 export default function App() {
   // Estados principais
-  const [estaLogado, setEstaLogado] = useState(recuperarSessao);
+  const [usuarioLogado, setUsuarioLogado] = useState(recuperarUsuario);
   const [paginaAtiva, setPaginaAtiva] = useState(recuperarPagina);
   const [mobileAberta, setMobileAberta] = useState(false);
 
-  // Login
-  function handleLoginSucesso() {
+  // Login bem-sucedido
+  function handleLoginSucesso(usuario) {
     try {
-      localStorage.setItem(CHAVE_SESSAO, 'true');
+      localStorage.setItem(CHAVE_USUARIO, JSON.stringify(usuario));
+      localStorage.setItem(CHAVE_PAGINA, 'Dashboard');
     } catch (error) {
       console.error('Erro ao salvar sessão:', error);
     }
 
-    setEstaLogado(true);
+    setUsuarioLogado(usuario);
+    setPaginaAtiva('Dashboard');
   }
 
   // Navegação entre páginas
@@ -100,18 +103,18 @@ export default function App() {
   // Logout
   function handleSair() {
     try {
-      localStorage.removeItem(CHAVE_SESSAO);
+      localStorage.removeItem(CHAVE_USUARIO);
       localStorage.removeItem(CHAVE_PAGINA);
     } catch (error) {
       console.error('Erro ao limpar sessão:', error);
     }
 
-    setEstaLogado(false);
+    setUsuarioLogado(null);
     setPaginaAtiva('Dashboard');
     setMobileAberta(false);
   }
 
-  // Renderização das páginas
+  // Renderização das páginas do Controlador
   function renderizarPagina() {
     switch (paginaAtiva) {
       case 'Dashboard':
@@ -135,17 +138,24 @@ export default function App() {
   }
 
   // Se não estiver logado, exibe a tela de login
-  if (!estaLogado) {
+  if (!usuarioLogado) {
     return <Login onLoginSucesso={handleLoginSucesso} />;
   }
 
-  // Essas páginas já possuem cabeçalho próprio
+  // Visão exclusiva do Operador
+  if (usuarioLogado.cargo === 'OPERADOR') {
+    return <Operacao usuario={usuarioLogado} onSair={handleSair} />;
+  }
+
+  // Visão do Controlador
   const possuiCabecalhoProprio =
     paginaAtiva === 'Dados Brutos' ||
     paginaAtiva === 'Registro de Operações';
 
+  const isDashboardFixo = paginaAtiva === 'Dashboard';
+
   return (
-    <div className="app d-flex">
+    <div className={`app d-flex ${isDashboardFixo ? 'app--dashboard-fixo' : ''}`}>
       <Sidebar
         paginaAtiva={paginaAtiva}
         onNavegar={handleNavegar}

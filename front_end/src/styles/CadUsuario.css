@@ -15,7 +15,7 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  padding: 0;          
+  padding: 0;
   overflow: hidden;
 }
 
@@ -34,8 +34,9 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  justify-content: center;
-  align-items: stretch;   /* formulário ocupa a altura toda do card */
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: stretch;
   color: var(--cor-texto);
   font-family: var(--fonte);
   text-align: left;
@@ -44,15 +45,30 @@
 .cadastro .cadastro-form {
   display: flex;
   flex-direction: column;
-  justify-content: center;  
-  gap: 16px;                    
+  justify-content: center;
+  gap: 16px;
   width: 100%;
-  max-width: 400px;
-  padding: 32px 40px;           
+  max-width: 420px;
+  padding: 32px 40px;
   overflow-y: auto;
   background: var(--cor-painel);
+  flex-shrink: 0;
 }
 
+.cadastro .cadastro-logo-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.cadastro .cadastro-logo {
+  width: min(320px, 75%);
+  height: auto;
+  object-fit: contain;
+}
 
 .cadastro .campo {
   display: flex;
@@ -104,8 +120,10 @@
 .cadastro .mensagem.sucesso { color: var(--cor-sucesso); }
 
 .cadastro .botao {
-  height: clamp(36px, 6vh, 44px);
-  margin-top: clamp(8px, 2vh, 16px);
+  height: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  margin-top: 14px;
   font-size: 16px;
   font-family: inherit;
   color: var(--cor-texto);
@@ -118,5 +136,15 @@
 .cadastro .botao:hover { background: var(--cor-primaria-hover); }
 .cadastro .botao:disabled { opacity: 0.6; cursor: not-allowed; }
 .cadastro .cadastro-form > .campo {
-  flex: 0 0 auto;  /* na coluna, não cresce nem encolhe */
+  flex: 0 0 auto;
+}
+
+@media (max-width: 820px) {
+  .cadastro .cadastro-logo-area {
+    display: none;
+  }
+
+  .cadastro {
+    justify-content: center;
+  }
 }

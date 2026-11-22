@@ -1,8 +1,14 @@
 import { useState } from "react";
 import "../styles/CadUsuario.css";
+import logo from "../assets/logos/logo.png";
 
-const API_URL = "http://localhost:3001/users";
-const CARGOS = ["Operador", "Controlador"];
+const API_BASE = String(import.meta.env.VITE_API_URL || "http://localhost:8080/api").replace(/\/+$/, "");
+const API_URL = `${API_BASE}/usuarios`;
+
+const CARGOS = [
+  { rotulo: "Operador", valor: "OPERADOR" },
+  { rotulo: "Controlador", valor: "CONTROLADOR" },
+];
 
 const FORM_INICIAL = {
   nome: "",
@@ -10,7 +16,7 @@ const FORM_INICIAL = {
   cpf: "",
   senha: "",
   confirmarSenha: "",
-  cargo: CARGOS[0],
+  cargo: "OPERADOR",
 };
 
 export default function CadUsuario() {
@@ -36,6 +42,11 @@ export default function CadUsuario() {
       return;
     }
 
+    if (form.senha.length < 8) {
+      setErro("A senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+
     if (form.senha !== form.confirmarSenha) {
       setErro("As senhas não conferem.");
       return;
@@ -51,20 +62,20 @@ export default function CadUsuario() {
           nome: form.nome.trim(),
           email: form.email.trim().toLowerCase(),
           cpf,
+          senha: form.senha,
           cargo: form.cargo,
-          status: "Ativo",
-          foto: null,
         }),
       });
 
       if (!resposta.ok) {
-        throw new Error("Não foi possível cadastrar o usuário. Verifique a API.");
+        const detalhe = await resposta.json().catch(() => null);
+        throw new Error(detalhe?.message || `Erro HTTP ${resposta.status} ao cadastrar usuário.`);
       }
 
       setSucesso("Usuário cadastrado com sucesso.");
       setForm({ ...FORM_INICIAL });
     } catch (err) {
-      setErro(`${err.message} Confira se o JSON Server está executando na porta 3001.`);
+      setErro(err.message || "Não foi possível conectar ao back-end.");
     } finally {
       setEnviando(false);
     }
@@ -113,11 +124,12 @@ export default function CadUsuario() {
 
         <div className="linha">
           <div className="campo">
-            <label htmlFor="senha">Senha</label>
+            <label htmlFor="senha">Senha (mín. 8 caracteres)</label>
             <input
               id="senha"
               name="senha"
               type="password"
+              minLength={8}
               value={form.senha}
               onChange={handleChange}
               required
@@ -130,6 +142,7 @@ export default function CadUsuario() {
               id="confirmarSenha"
               name="confirmarSenha"
               type="password"
+              minLength={8}
               value={form.confirmarSenha}
               onChange={handleChange}
               required
@@ -146,8 +159,8 @@ export default function CadUsuario() {
             onChange={handleChange}
           >
             {CARGOS.map((cargo) => (
-              <option key={cargo} value={cargo}>
-                {cargo}
+              <option key={cargo.valor} value={cargo.valor}>
+                {cargo.rotulo}
               </option>
             ))}
           </select>
@@ -160,6 +173,14 @@ export default function CadUsuario() {
           {enviando ? "Cadastrando..." : "Cadastrar"}
         </button>
       </form>
+
+      <div className="cadastro-logo-area">
+        <img
+          src={logo}
+          alt="DrillTrack - Da sonda à decisão"
+          className="cadastro-logo"
+        />
+      </div>
     </div>
   );
 }
