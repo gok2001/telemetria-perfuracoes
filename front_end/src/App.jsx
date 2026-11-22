@@ -152,10 +152,8 @@ export default function App() {
     paginaAtiva === 'Dados Brutos' ||
     paginaAtiva === 'Registro de Operações';
 
-  const isDashboardFixo = paginaAtiva === 'Dashboard';
-
   return (
-    <div className={`app d-flex ${isDashboardFixo ? 'app--dashboard-fixo' : ''}`}>
+    <div className="app d-flex app--layout-fixo">
       <Sidebar
         paginaAtiva={paginaAtiva}
         onNavegar={handleNavegar}
