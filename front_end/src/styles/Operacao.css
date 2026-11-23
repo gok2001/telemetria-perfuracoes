@@ -1,0 +1,157 @@
+/* src/styles/Operacao.css */
+.operacao-page {
+  min-height: 100vh;
+  background-color: #0b1014;
+  color: #f3f4f6;
+  display: flex;
+  flex-direction: column;
+}
+
+.operacao-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 14px 28px;
+  background: #11181e;
+  border-bottom: 1px solid #26313a;
+}
+
+.operacao-topbar__marca {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.operacao-topbar__logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.operacao-topbar__titulo {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.operacao-topbar__subtitulo {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.operacao-topbar__acoes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.operacao-usuario-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: #18222a;
+  border: 1px solid #2d3a45;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.operacao-usuario-badge small {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(53, 204, 65, 0.14);
+  color: #4ade80;
+}
+
+.operacao-btn-alerta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(192, 0, 11, 0.14);
+  color: #fca5a5;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.operacao-btn-alerta:hover {
+  background: rgba(192, 0, 11, 0.25);
+  border-color: #ef4444;
+  color: #fff;
+}
+
+.operacao-btn-alerta__contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #c0000b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.operacao-btn-sair {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #37434b;
+  background: #1a232b;
+  color: #f3f4f6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.operacao-btn-sair:hover {
+  background: #c0000b;
+  border-color: #c0000b;
+  color: #fff;
+}
+
+.operacao-conteudo.dashboard {
+  flex: 1;
+  padding: 24px 28px 32px;
+}
+
+/* Garante que o tooltip do gráfico fique acima da legenda e legível */
+.operacao-conteudo .recharts-tooltip-wrapper {
+  z-index: 50 !important;
+  pointer-events: none;
+}
+
+.operacao-conteudo .recharts-default-tooltip {
+  background-color: rgba(16, 23, 29, 0.96) !important;
+  border: 1px solid #37434b !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45) !important;
+}
+
+@media (max-width: 640px) {
+  .operacao-topbar {
+    padding: 14px 16px;
+  }
+
+  .operacao-conteudo.dashboard {
+    padding: 18px 16px 24px;
+  }
+}

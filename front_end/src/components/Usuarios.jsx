@@ -2,54 +2,64 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Search,
   Pencil,
-  Trash2,
   X,
-  Camera,
   ChevronLeft,
   ChevronRight,
-  UserRound,
   LoaderCircle,
 } from 'lucide-react';
 import '../styles/Usuarios.css';
 
-const API_URL = 'http://localhost:3001/users';
+const API_BASE = String(import.meta.env.VITE_API_URL || 'http://localhost:8080/api').replace(/\/+$/, '');
+const API_URL = `${API_BASE}/usuarios`;
 const ITENS_POR_PAGINA = 10;
-const CARGOS = ['Operador', 'Controlador'];
-const STATUS = ['Ativo', 'Inativo'];
 
-const usuarioVazio = {
-  id: null,
-  nome: '',
-  email: '',
-  cargo: 'Operador',
-  status: 'Ativo',
-  foto: null,
-};
+const CARGOS_FILTRO = [
+  { rotulo: 'Operador', valor: 'OPERADOR' },
+  { rotulo: 'Controlador', valor: 'CONTROLADOR' },
+];
 
-// Mantém a mesma lógica visual de paginação utilizada em Dados Brutos.
+const STATUS_OPCOES = [
+  { rotulo: 'Ativo', valor: 'ATIVO' },
+  { rotulo: 'Inativo', valor: 'INATIVO' },
+];
+
+function formatarCargo(cargo) {
+  if (cargo === 'OPERADOR') return 'Operador';
+  if (cargo === 'CONTROLADOR') return 'Controlador';
+  return cargo || '-';
+}
+
+function formatarStatus(status) {
+  if (status === 'ATIVO') return 'Ativo';
+  if (status === 'INATIVO') return 'Inativo';
+  return status || '-';
+}
+
 function paginasVisiveis(atual, total) {
   if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (atual <= 3) return [1, 2, 3, "...", total];
-  if (atual >= total - 2) return [1, "...", total - 2, total - 1, total];
-  return [1, "...", atual, "...", total];
+  if (atual <= 3) return [1, 2, 3, '...', total];
+  if (atual >= total - 2) return [1, '...', total - 2, total - 1, total];
+  return [1, '...', atual, '...', total];
 }
 
 function iniciais(nome = '') {
-  return nome
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((parte) => parte[0]?.toUpperCase() || '')
-    .join('') || 'US';
+  return (
+    nome
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((parte) => parte[0]?.toUpperCase() || '')
+      .join('') || 'US'
+  );
 }
 
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [busca, setBusca] = useState('');
-  const [cargoFiltro, setCargoFiltro] = useState('Todos os cargos');
+  const [cargoFiltro, setCargoFiltro] = useState('TODOS');
   const [pagina, setPagina] = useState(1);
   const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
-  const [formulario, setFormulario] = useState(usuarioVazio);
+  const [novoStatus, setNovoStatus] = useState('ATIVO');
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
@@ -59,11 +69,11 @@ export default function Usuarios() {
     setErro('');
     try {
       const resposta = await fetch(API_URL);
-      if (!resposta.ok) throw new Error('Não foi possível carregar os usuários.');
+      if (!resposta.ok) throw new Error(`Erro HTTP ${resposta.status} ao carregar usuários.`);
       const dados = await resposta.json();
       setUsuarios(Array.isArray(dados) ? dados : []);
     } catch (error) {
-      setErro(`${error.message} Verifique se o JSON Server está executando na porta 3001.`);
+      setErro(`${error.message} Verifique se o back-end Java está rodando na porta 8080.`);
     } finally {
       setCarregando(false);
     }
@@ -79,8 +89,7 @@ export default function Usuarios() {
       const correspondeBusca =
         usuario.nome?.toLocaleLowerCase('pt-BR').includes(termo) ||
         usuario.email?.toLocaleLowerCase('pt-BR').includes(termo);
-      const correspondeCargo =
-        cargoFiltro === 'Todos os cargos' || usuario.cargo === cargoFiltro;
+      const correspondeCargo = cargoFiltro === 'TODOS' || usuario.cargo === cargoFiltro;
       return correspondeBusca && correspondeCargo;
     });
   }, [usuarios, busca, cargoFiltro]);
@@ -90,78 +99,42 @@ export default function Usuarios() {
   const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
   const usuariosPagina = usuariosFiltrados.slice(inicio, inicio + ITENS_POR_PAGINA);
 
-  function abrirEdicao(usuario) {
-    setFormulario({ ...usuario });
-    setUsuarioSelecionado(usuario.id);
+  function abrirEdicaoStatus(usuario) {
+    setUsuarioSelecionado(usuario);
+    setNovoStatus(usuario.status || 'ATIVO');
     setErro('');
   }
 
   function fecharEdicao() {
     setUsuarioSelecionado(null);
-    setFormulario(usuarioVazio);
   }
 
-  function atualizarCampo(event) {
-    const { name, value } = event.target;
-    setFormulario((atual) => ({ ...atual, [name]: value }));
-  }
-
-  function selecionarFoto(event) {
-    const arquivo = event.target.files?.[0];
-    if (!arquivo) return;
-    if (!arquivo.type.startsWith('image/')) {
-      setErro('Selecione um arquivo de imagem válido.');
-      return;
-    }
-    const leitor = new FileReader();
-    leitor.onload = () => setFormulario((atual) => ({ ...atual, foto: leitor.result }));
-    leitor.onerror = () => setErro('Não foi possível carregar a imagem.');
-    leitor.readAsDataURL(arquivo);
-  }
-
-  async function salvarUsuario(event) {
+  async function salvarStatus(event) {
     event.preventDefault();
-    if (!formulario.nome.trim() || !formulario.email.trim()) {
-      setErro('Preencha o nome completo e o e-mail.');
-      return;
-    }
+    if (!usuarioSelecionado) return;
 
     setSalvando(true);
     setErro('');
     try {
-      const resposta = await fetch(`${API_URL}/${usuarioSelecionado}`, {
-        method: 'PUT',
+      const resposta = await fetch(`${API_URL}/${usuarioSelecionado.id}/status`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formulario,
-          nome: formulario.nome.trim(),
-          email: formulario.email.trim(),
-        }),
+        body: JSON.stringify({ status: novoStatus }),
       });
-      if (!resposta.ok) throw new Error('Não foi possível salvar as alterações.');
+
+      if (!resposta.ok) {
+        throw new Error(`Erro HTTP ${resposta.status} ao alterar status.`);
+      }
+
       const usuarioAtualizado = await resposta.json();
-      setUsuarios((atuais) => atuais.map((usuario) =>
-        usuario.id === usuarioAtualizado.id ? usuarioAtualizado : usuario
-      ));
+      setUsuarios((atuais) =>
+        atuais.map((u) => (u.id === usuarioAtualizado.id ? usuarioAtualizado : u))
+      );
       fecharEdicao();
     } catch (error) {
-      setErro(`${error.message} Confira se a API está disponível.`);
+      setErro(error.message || 'Não foi possível salvar o status.');
     } finally {
       setSalvando(false);
-    }
-  }
-
-  async function excluirUsuario(usuario) {
-    const confirmar = window.confirm(`Deseja realmente excluir o usuário ${usuario.nome}?`);
-    if (!confirmar) return;
-
-    try {
-      const resposta = await fetch(`${API_URL}/${usuario.id}`, { method: 'DELETE' });
-      if (!resposta.ok) throw new Error('Não foi possível excluir o usuário.');
-      setUsuarios((atuais) => atuais.filter((item) => item.id !== usuario.id));
-      if (usuarioSelecionado === usuario.id) fecharEdicao();
-    } catch (error) {
-      setErro(error.message);
     }
   }
 
@@ -169,7 +142,7 @@ export default function Usuarios() {
     <div className="usuarios-layout">
       <section className="usuarios-conteudo">
         <div className="usuarios-titulo">
-            <p>Gerenciar os usuários da plataforma</p>
+          <p>Gerenciar os usuários da plataforma</p>
         </div>
 
         <div className="usuarios-filtros">
@@ -179,7 +152,10 @@ export default function Usuarios() {
               type="search"
               placeholder="Buscar usuário..."
               value={busca}
-              onChange={(event) => { setBusca(event.target.value); setPagina(1); }}
+              onChange={(event) => {
+                setBusca(event.target.value);
+                setPagina(1);
+              }}
             />
             <Search size={21} aria-hidden="true" />
           </label>
@@ -187,10 +163,17 @@ export default function Usuarios() {
           <select
             aria-label="Filtrar por cargo"
             value={cargoFiltro}
-            onChange={(event) => { setCargoFiltro(event.target.value); setPagina(1); }}
+            onChange={(event) => {
+              setCargoFiltro(event.target.value);
+              setPagina(1);
+            }}
           >
-            <option>Todos os cargos</option>
-            {CARGOS.map((cargo) => <option key={cargo}>{cargo}</option>)}
+            <option value="TODOS">Todos os cargos</option>
+            {CARGOS_FILTRO.map((c) => (
+              <option key={c.valor} value={c.valor}>
+                {c.rotulo}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -209,47 +192,73 @@ export default function Usuarios() {
             </thead>
             <tbody>
               {carregando ? (
-                <tr><td colSpan="5" className="usuarios-vazio"><LoaderCircle className="usuarios-spinner" size={20} /> Carregando usuários...</td></tr>
-              ) : usuariosPagina.length === 0 ? (
-                <tr><td colSpan="5" className="usuarios-vazio">Nenhum usuário encontrado.</td></tr>
-              ) : usuariosPagina.map((usuario) => (
-                <tr key={usuario.id}>
-                  <td>
-                    <div className="usuarios-identificacao">
-                      {usuario.foto ? (
-                        <img className="usuarios-avatar" src={usuario.foto} alt={`Foto de ${usuario.nome}`} />
-                      ) : (
-                        <span className="usuarios-avatar usuarios-avatar-iniciais">{iniciais(usuario.nome)}</span>
-                      )}
-                      <span>{usuario.nome}</span>
-                    </div>
-                  </td>
-                  <td><a className="usuarios-email" href={`mailto:${usuario.email}`}>{usuario.email}</a></td>
-                  <td>{usuario.cargo}</td>
-                  <td><span className={`usuarios-status ${usuario.status === 'Ativo' ? 'is-ativo' : 'is-inativo'}`}>{usuario.status}</span></td>
-                  <td>
-                    <div className="usuarios-acoes">
-                      <button type="button" className="usuarios-acao editar" onClick={() => abrirEdicao(usuario)} aria-label={`Editar ${usuario.nome}`} title="Editar"><Pencil size={16} /></button>
-                      <button type="button" className="usuarios-acao excluir" onClick={() => excluirUsuario(usuario)} aria-label={`Excluir ${usuario.nome}`} title="Excluir"><Trash2 size={16} /></button>
-                    </div>
+                <tr>
+                  <td colSpan="5" className="usuarios-vazio">
+                    <LoaderCircle className="usuarios-spinner" size={20} /> Carregando usuários...
                   </td>
                 </tr>
-              ))}
+              ) : usuariosPagina.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="usuarios-vazio">
+                    Nenhum usuário encontrado.
+                  </td>
+                </tr>
+              ) : (
+                usuariosPagina.map((usuario) => (
+                  <tr key={usuario.id}>
+                    <td>
+                      <div className="usuarios-identificacao">
+                        <span className="usuarios-avatar usuarios-avatar-iniciais">
+                          {iniciais(usuario.nome)}
+                        </span>
+                        <span>{usuario.nome}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <a className="usuarios-email" href={`mailto:${usuario.email}`}>
+                        {usuario.email}
+                      </a>
+                    </td>
+                    <td>{formatarCargo(usuario.cargo)}</td>
+                    <td>
+                      <span
+                        className={`usuarios-status ${
+                          usuario.status === 'ATIVO' ? 'is-ativo' : 'is-inativo'
+                        }`}
+                      >
+                        {formatarStatus(usuario.status)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="usuarios-acoes">
+                        <button
+                          type="button"
+                          className="usuarios-acao editar"
+                          onClick={() => abrirEdicaoStatus(usuario)}
+                          aria-label={`Alterar status de ${usuario.nome}`}
+                          title="Alterar status"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        
         <footer className="usuarios-paginacao">
           <span>
             {carregando
               ? 'Carregando registros...'
               : usuariosFiltrados.length === 0
-                ? 'Mostrando 0 de 0 registros.'
-                : `Mostrando ${inicio + 1} a ${Math.min(
-                    inicio + ITENS_POR_PAGINA,
-                    usuariosFiltrados.length
-                  )} de ${usuariosFiltrados.length} registros.`}
+              ? 'Mostrando 0 de 0 registros.'
+              : `Mostrando ${inicio + 1} a ${Math.min(
+                  inicio + ITENS_POR_PAGINA,
+                  usuariosFiltrados.length
+                )} de ${usuariosFiltrados.length} registros.`}
           </span>
 
           {!carregando && totalPaginas > 1 && (
@@ -263,18 +272,24 @@ export default function Usuarios() {
                 <ChevronLeft size={18} />
               </button>
 
-              {numerosPaginas.map((numero) => (
-                <button
-                  key={numero}
-                  type="button"
-                  className={paginaAtual === numero ? 'pagina-ativa' : ''}
-                  onClick={() => setPagina(numero)}
-                  aria-label={`Ir para página ${numero}`}
-                  aria-current={paginaAtual === numero ? 'page' : undefined}
-                >
-                  {numero}
-                </button>
-              ))}
+              {paginasVisiveis(paginaAtual, totalPaginas).map((numero, idx) =>
+                numero === '...' ? (
+                  <span key={`pontos-${idx}`} className="pag-pontos">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={numero}
+                    type="button"
+                    className={paginaAtual === numero ? 'pagina-ativa' : ''}
+                    onClick={() => setPagina(numero)}
+                    aria-label={`Ir para página ${numero}`}
+                    aria-current={paginaAtual === numero ? 'page' : undefined}
+                  >
+                    {numero}
+                  </button>
+                )
+              )}
 
               <button
                 type="button"
@@ -287,54 +302,54 @@ export default function Usuarios() {
             </div>
           )}
         </footer>
-
       </section>
 
       {usuarioSelecionado && (
         <>
-          <button type="button" className="usuarios-drawer-overlay" onClick={fecharEdicao} aria-label="Fechar edição" />
-          <aside className="usuarios-drawer" aria-label="Editar usuário">
+          <button
+            type="button"
+            className="usuarios-drawer-overlay"
+            onClick={fecharEdicao}
+            aria-label="Fechar edição"
+          />
+          <aside className="usuarios-drawer" aria-label="Alterar status do usuário">
             <div className="usuarios-drawer-cabecalho">
-              <h3>Editar usuário</h3>
-              <button type="button" onClick={fecharEdicao} aria-label="Fechar"><X size={18} /></button>
+              <h3>Alterar status</h3>
+              <button type="button" onClick={fecharEdicao} aria-label="Fechar">
+                <X size={18} />
+              </button>
             </div>
 
-            <form onSubmit={salvarUsuario} className="usuarios-formulario">
-              <div className="usuarios-foto-area">
-                <div className="usuarios-foto-preview">
-                  {formulario.foto ? <img src={formulario.foto} alt="Prévia da foto do usuário" /> : <><UserRound size={38} /><span>{iniciais(formulario.nome)}</span></>}
-                </div>
-                <label className="usuarios-foto-botao">
-                  <Camera size={15} /> Alterar foto
-                  <input type="file" accept="image/*" onChange={selecionarFoto} />
-                </label>
-              </div>
-
+            <form onSubmit={salvarStatus} className="usuarios-formulario">
               <label className="usuarios-campo">
-                <span>Nome completo</span>
-                <input name="nome" value={formulario.nome} onChange={atualizarCampo} placeholder="Nome completo" required />
+                <span>Usuário</span>
+                <input value={usuarioSelecionado.nome} disabled />
               </label>
               <label className="usuarios-campo">
                 <span>E-mail</span>
-                <input type="email" name="email" value={formulario.email} onChange={atualizarCampo} placeholder="email@exemplo.com" required />
+                <input value={usuarioSelecionado.email} disabled />
               </label>
               <label className="usuarios-campo">
                 <span>Cargo</span>
-                <select name="cargo" value={formulario.cargo} onChange={atualizarCampo}>
-                  {CARGOS.map((cargo) => <option key={cargo}>{cargo}</option>)}
-                </select>
+                <input value={formatarCargo(usuarioSelecionado.cargo)} disabled />
               </label>
               <label className="usuarios-campo">
                 <span>Status</span>
-                <select name="status" value={formulario.status} onChange={atualizarCampo}>
-                  {STATUS.map((status) => <option key={status}>{status}</option>)}
+                <select value={novoStatus} onChange={(e) => setNovoStatus(e.target.value)}>
+                  {STATUS_OPCOES.map((st) => (
+                    <option key={st.valor} value={st.valor}>
+                      {st.rotulo}
+                    </option>
+                  ))}
                 </select>
               </label>
 
               {erro && <div className="usuarios-alerta">{erro}</div>}
 
               <div className="usuarios-form-acoes">
-                <button type="button" className="usuarios-btn-cancelar" onClick={fecharEdicao}>Cancelar</button>
+                <button type="button" className="usuarios-btn-cancelar" onClick={fecharEdicao}>
+                  Cancelar
+                </button>
                 <button type="submit" className="usuarios-btn-salvar" disabled={salvando}>
                   {salvando ? 'Salvando...' : 'Salvar'}
                 </button>

@@ -1,26 +1,114 @@
 /* src/styles/registroOperacoes.css */
-/* Cards específicos do Registro de Operações; mantém o visual de Dados Brutos. */
-.ro-page .dados-content {
-  min-width: 0;
+.ro-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: auto !important;
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 36px;
 }
 
+.ro-page .dados-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  height: auto;
+}
+
+.ro-page .ro-visualizacao {
+  display: flex;
+  flex-direction: column;
+}
+
+.ro-page .ro-visualizacao__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.ro-page .ro-visualizacao__titulo-linha {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ro-page .ro-visualizacao__titulo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.ro-page .ro-visualizacao__titulo svg {
+  color: #e84a54;
+}
+
+.ro-page .ro-contador-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.ro-page .ro-visualizacao__descricao {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #aeb8c0;
+}
+
+.ro-page .ro-atalho {
+  border: 0;
+  padding: 6px 0;
+  background: transparent;
+  color: #e7a0a6;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ro-page .ro-atalho:hover {
+  color: #fff;
+}
+
+/* ===== Grid Escalável para Qualquer Quantidade de Sondas ===== */
 .ro-page .ro-cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-content: start;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  align-items: stretch;
   gap: 20px;
   width: 100%;
-  overflow-y: auto;
+  overflow: visible;
   padding: 2px 2px 8px;
 }
 
-.ro-page .ro-card {
+.ro-page .ro-cards .ro-card {
   min-width: 0;
-  min-height: 260px;
+  min-height: 360px;
+  height: auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 22px;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px;
+  box-sizing: border-box;
   border: 1px solid #37434b;
   border-top: 3px solid #c0000b;
   border-radius: 14px;
@@ -39,6 +127,7 @@
 
 .ro-page .ro-card__topo {
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .ro-page .ro-card__icone {
@@ -66,7 +155,7 @@
 .ro-page .ro-card__titulo {
   margin: 0;
   color: #f5f7f8;
-  font-size: clamp(16px, 1.5vw, 20px);
+  font-size: clamp(16px, 1.4vw, 20px);
   font-weight: 700;
   overflow-wrap: anywhere;
 }
@@ -83,22 +172,28 @@
   text-align: center;
 }
 
-.ro-page .ro-card__campos {
-  display: grid;
+.ro-page .ro-cards .ro-card__campos {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   gap: 16px;
+  width: 100%;
 }
 
-.ro-page .ro-card__linha {
+.ro-page .ro-cards .ro-card__linha {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 14px;
-  padding-bottom: 11px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #303c44;
   font-size: 13px;
+  text-align: center;
 }
 
-.ro-page .ro-card__linha:last-child {
+.ro-page .ro-cards .ro-card__linha:last-child {
   padding-bottom: 0;
   border-bottom: 0;
 }
@@ -108,11 +203,13 @@
   color: #a7b2b9;
 }
 
-.ro-page .ro-card__linha strong {
+.ro-page .ro-cards .ro-card__linha strong {
   min-width: 0;
   color: #f7f8fa;
+  font-size: 16px;
   font-weight: 600;
-  text-align: right;
+  text-align: center;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
@@ -120,16 +217,43 @@
 .ro-page .ro-card__linha .ro-status--manutencao { color: #f7cf24; }
 .ro-page .ro-card__linha .ro-status--desligado { color: #6da5ce; }
 .ro-page .ro-card__linha .ro-status--indefinido { color: #aab5be; }
+.ro-page .ro-card__linha .ro-status--finalizado { color: #b2bbc4; }
 
-.ro-page .ro-card--vazio {
+.ro-page .ro-cards .ro-card--vazio {
   border-top-color: #48545c;
   background: #161e24;
 }
-.ro-page .ro-card--vazio .ro-card__titulo {
+
+.ro-page .ro-cards .ro-card--vazio .ro-card__titulo {
   font-size: 15px;
   color: #a4aeb5;
 }
 
+/* Cards de Histórico */
+.ro-page .ro-cards--historico .ro-card {
+  border-top-color: #697783;
+  background: #141c22;
+}
+
+.ro-page .ro-cards--historico .ro-card__icone {
+  color: #adb9c2;
+  background: rgba(150, 160, 170, 0.12);
+}
+
+.ro-page .ro-cards--historico .ro-card__rotulo {
+  color: #b4bfc7;
+}
+
+.ro-page .ro-historico__vazio {
+  padding: 38px 18px;
+  border: 1px dashed #44515b;
+  border-radius: 12px;
+  color: #aeb8c0;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Avisos */
 .ro-page .ro-aviso-erro {
   display: flex;
   flex-wrap: wrap;
@@ -139,159 +263,32 @@
   color: #ffb38c;
   font-size: 12px;
 }
+
 .ro-page .ro-resultado-vazio {
   margin: 20px 0 0;
   color: #aeb8c0;
   font-size: 13px;
 }
 
-@media (max-width: 1120px) {
-  .ro-page .ro-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 760px) {
-  .ro-page .ro-cards { grid-template-columns: 1fr; }
-  .ro-page .ro-card { min-height: 240px; }
-}
-
-/* Formulário e filtro permanecem no mesmo estilo do DrillTrack. */
 .ro-page .dados-btn-registro {
   white-space: nowrap;
 }
 
-.ro-page .ro-status { font-weight: 600; }
-.ro-page .ro-status--operando { color: #35cc41; }
-.ro-page .ro-status--manutencao { color: #f7cf24; }
-.ro-page .ro-status--desligado { color: #6da5ce; }
-.ro-page .ro-sucesso { color: #65d78b; font-size: 0.8rem; }
-
-/* Mesmo modal escuro e vermelho da referência original do DrillTrack. */
-.ro-page .rop-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.78);
-}
-.ro-page .rop-box {
-  position: relative;
-  width: 100%;
-  max-width: 410px;
-  min-height: 530px;
-  max-height: calc(100dvh - 32px);
-  overflow-y: auto;
-  padding: 62px 28px 38px;
-  border: none;
-  border-radius: 30px;
-  background: #10171d;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.ro-page .rop-fechar {
-  position: absolute;
-  right: 20px;
-  top: 17px;
-  width: 30px;
-  height: 30px;
-  border: 0;
-  background: transparent;
-  color: #b5bac0;
-  cursor: pointer;
-}
-.ro-page .rop-titulo {
-  margin: 0 0 50px;
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-  color: #fff;
-}
-.ro-page .rop-campos {
-  width: 100%;
-  max-width: 250px;
-  display: flex;
-  flex-direction: column;
-  gap: 48px;
-}
-.ro-page .rop-campo { width: 100%; }
-.ro-page .rop-select {
-  display: block;
-  width: 100%;
-  height: 50px;
-  padding: 0 38px 0 14px;
-  border: 0;
-  border-left: 2px solid #c0000b;
-  border-radius: 10px;
-  background-color: #1a2228;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 650;
-  text-align-last: center;
-  cursor: pointer;
-}
-.ro-page .rop-select option { background: #1a2228; color: #fff; }
-.ro-page .rop-erro {
-  margin: 16px 0 -25px;
-  max-width: 270px;
-  text-align: center;
-  color: #ff7777;
-  font-size: 12px;
-}
-.ro-page .rop-btn {
-  margin-top: 53px;
-  min-height: 42px;
-  width: 100%;
-  max-width: 242px;
-  border: 0;
-  border-radius: 8px;
-  background: #b9080f;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.ro-page .rop-btn:hover:not(:disabled) { background: #d20d15; }
-.ro-page .rop-btn:disabled { opacity: 0.6; cursor: wait; }
-.ro-page .rop-select:focus-visible,
-.ro-page .rop-btn:focus-visible {
-  outline: 2px solid #ff5059;
-  outline-offset: 2px;
-}
-.ro-page .rop-label-visualmente-oculta {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-@media (max-width: 560px) {
-  .ro-page .dados-header { align-items: stretch; flex-direction: column; }
-  .ro-page .dados-btn-registro { align-self: flex-start; }
-  .ro-page .rop-box { min-height: auto; padding: 55px 18px 30px; }
-  .ro-page .rop-titulo { margin-bottom: 35px; }
-  .ro-page .rop-campos { gap: 25px; }
-  .ro-page .rop-btn { margin-top: 35px; }
+.ro-page .ro-status {
+  font-weight: 600;
 }
 
-/* Ajustes para avisos de integração. */
-.ro-page .ro-api-aviso { color: #ffb38c; font-size: 0.78rem; }
-.ro-page .ro-form-aviso {
-  max-width: 275px;
-  margin: 16px 0 -26px;
-  color: #bdc4ca;
-  text-align: center;
-  font-size: 12px;
+.ro-page .ro-sucesso {
+  color: #65d78b;
+  font-size: 0.8rem;
 }
-.ro-page .rop-select:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Busca de operador: imediatamente ao lado do filtro de equipamentos. */
+.ro-page .ro-api-aviso {
+  color: #ffb38c;
+  font-size: 0.78rem;
+}
+
+/* Busca de operador */
 .ro-page .ro-busca {
   position: relative;
   flex: 0 1 260px;
@@ -334,146 +331,29 @@
   font-size: 15px;
 }
 
-@media (max-width: 560px) {
-  .ro-page .ro-busca {
-    flex: 1 1 100%;
-    width: 100%;
-    max-width: none;
-    margin-left: 0;
-  }
-}
-
-
-/* ===== Card principal mais alto e com informações centralizadas ===== */
-.ro-page .ro-cards .ro-card {
-  min-height: 520px;
-  padding: 32px;
-  gap: 20px;
-}
-.ro-page .ro-cards .ro-card__topo { flex-shrink: 0; }
-.ro-page .ro-cards .ro-card__campos {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 28px;
-  width: 100%;
-}
-.ro-page .ro-cards .ro-card__linha {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding-bottom: 20px;
-  text-align: center;
-}
-.ro-page .ro-cards .ro-card__linha strong {
-  font-size: 18px;
-  font-weight: 600;
-  text-align: center;
-  line-height: 1.4;
-}
-.ro-page .ro-cards .ro-card__linha:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-/* ===== Páginas lado a lado (uma visível de cada vez) ===== */
-.ro-page {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-.ro-page .dados-content {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-}
-.ro-page .ro-visualizacao {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-.ro-page .ro-visualizacao__topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-.ro-page .ro-visualizacao__titulo {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #f3f4f6;
-}
-.ro-page .ro-visualizacao__titulo svg { color: #e84a54; }
-.ro-page .ro-visualizacao__descricao {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: #aeb8c0;
-}
-.ro-page .ro-atalho {
-  border: 0;
-  padding: 6px 0;
-  background: transparent;
-  color: #e7a0a6;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-.ro-page .ro-atalho:hover { color: #fff; }
-.ro-page .ro-cards { overflow: visible; }
-/* Mesmo tamanho e centralização dos cards atuais, inclusive no histórico. */
-.ro-page .ro-cards--historico .ro-card {
-  min-height: 520px;
-  border-top-color: #697783;
-  background: #141c22;
-}
-.ro-page .ro-cards--historico .ro-card__icone {
-  color: #adb9c2;
-  background: rgba(150,160,170,.12);
-}
-.ro-page .ro-cards--historico .ro-card__rotulo { color: #b4bfc7; }
-.ro-page .ro-card__linha .ro-status--finalizado { color: #b2bbc4; }
-.ro-page .ro-historico__vazio {
-  padding: 38px 18px;
-  border: 1px dashed #44515b;
-  border-radius: 12px;
-  color: #aeb8c0;
-  font-size: 13px;
-  text-align: center;
-}
+/* Paginação sempre abaixo dos cards, nunca flutuando */
 .ro-page .ro-paginacao {
+  position: static;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-top: auto;
-  padding-top: 24px;
+  width: 100%;
+  margin-top: 28px;
+  padding-top: 16px;
   padding-bottom: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: #aeb8c0;
   font-size: 12px;
 }
+
 .ro-page .ro-paginacao__controles {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .ro-page .ro-paginacao__controles button {
   display: inline-flex;
   justify-content: center;
@@ -487,19 +367,256 @@
   color: #fff;
   cursor: pointer;
 }
+
 .ro-page .ro-paginacao__controles button:not(:disabled):hover {
   border-color: #c0000b;
 }
+
 .ro-page .ro-paginacao__controles button:disabled {
-  opacity: .35;
+  opacity: 0.35;
   cursor: not-allowed;
 }
+
 .ro-page .ro-paginacao__controles span {
   min-width: 46px;
   text-align: center;
   color: #f3f4f6;
 }
+
+/* Modal de Registro */
+.ro-page .rop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.ro-page .rop-box {
+  position: relative;
+  width: 100%;
+  max-width: 410px;
+  min-height: 530px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 62px 28px 38px;
+  border: none;
+  border-radius: 30px;
+  background: #10171d;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ro-page .rop-fechar {
+  position: absolute;
+  right: 20px;
+  top: 17px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: #b5bac0;
+  cursor: pointer;
+}
+
+.ro-page .rop-titulo {
+  margin: 0 0 50px;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+}
+
+.ro-page .rop-campos {
+  width: 100%;
+  max-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.ro-page .rop-campo {
+  width: 100%;
+}
+
+.ro-page .rop-select {
+  display: block;
+  width: 100%;
+  height: 50px;
+  padding: 0 38px 0 14px;
+  border: 0;
+  border-left: 2px solid #c0000b;
+  border-radius: 10px;
+  background-color: #1a2228;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 650;
+  text-align-last: center;
+  cursor: pointer;
+}
+
+.ro-page .rop-select option {
+  background: #1a2228;
+  color: #fff;
+}
+
+.ro-page .rop-erro {
+  margin: 16px 0 -25px;
+  max-width: 270px;
+  text-align: center;
+  color: #ff7777;
+  font-size: 12px;
+}
+
+.ro-page .rop-btn {
+  margin-top: 53px;
+  min-height: 42px;
+  width: 100%;
+  max-width: 242px;
+  border: 0;
+  border-radius: 8px;
+  background: #b9080f;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ro-page .rop-btn:hover:not(:disabled) {
+  background: #d20d15;
+}
+
+.ro-page .rop-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ro-page .rop-select:focus-visible,
+.ro-page .rop-btn:focus-visible {
+  outline: 2px solid #ff5059;
+  outline-offset: 2px;
+}
+
+.ro-page .rop-label-visualmente-oculta {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ro-page .ro-form-aviso {
+  max-width: 275px;
+  margin: 16px 0 -26px;
+  color: #bdc4ca;
+  text-align: center;
+  font-size: 12px;
+}
+
+.ro-page .rop-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 760px) {
-  .ro-page .ro-cards .ro-card { min-height: 420px; padding: 24px; }
-  .ro-page .ro-cards--historico .ro-card { min-height: 420px; }
+  .ro-page .ro-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .ro-page .ro-cards .ro-card {
+    min-height: 320px;
+    padding: 20px;
+  }
+
+  .ro-page .ro-visualizacao__topo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .ro-page .dados-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ro-page .dados-btn-registro {
+    align-self: flex-start;
+  }
+
+  .ro-page .ro-busca {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+  }
+
+  .ro-page .rop-box {
+    min-height: auto;
+    padding: 55px 18px 30px;
+  }
+
+  .ro-page .rop-titulo {
+    margin-bottom: 35px;
+  }
+
+  .ro-page .rop-campos {
+    gap: 25px;
+  }
+
+  .ro-page .rop-btn {
+    margin-top: 35px;
+  }
+}
+
+.ro-page .ro-visualizacao__acoes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* ===== Destaques de Cores por Estado ===== */
+.ro-page .ro-contador-badge {
+  color: #86efac;
+  background: rgba(53, 204, 65, 0.12);
+  border-color: rgba(53, 204, 65, 0.3);
+}
+
+/* Borda superior do card acompanha o estado da sonda */
+.ro-page .ro-cards .ro-card.ro-card--ativa {
+  border-top: 3px solid #35cc41;
+  box-shadow: 0 10px 26px rgba(53, 204, 65, 0.08);
+}
+
+.ro-page .ro-cards .ro-card.ro-card--inativa {
+  border-top: 3px solid #c0000b;
+}
+
+/* Cores dos textos de status e conexão */
+.ro-page .ro-cards .ro-card__linha strong.ro-status--operando {
+  color: #35cc41;
+}
+
+.ro-page .ro-cards .ro-card__linha strong.ro-status--manutencao {
+  color: #f7cf24;
+}
+
+.ro-page .ro-cards .ro-card__linha strong.ro-status--desligado {
+  color: #6da5ce;
+}
+
+.ro-page .ro-cards .ro-card__linha strong.ro-status--indefinido,
+.ro-page .ro-cards .ro-card__linha strong.ro-texto-neutro {
+  color: #8b98a2;
+  font-weight: 500;
 }

@@ -1,8 +1,20 @@
-
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, X } from "lucide-react";
 import "../styles/login.css";
 import logo from "../assets/logos/logo.png";
+
+const API_BASE = String(import.meta.env.VITE_API_URL || "http://localhost:8080/api").replace(/\/+$/, "");
+const USUARIOS_URL = `${API_BASE}/usuarios`;
+
+export const ADMIN_PADRAO = {
+  nome: "Administrador",
+  email: "admin@drilltrack.com",
+  cpf: "00000000000",
+  senha: "admin123",
+  cargo: "CONTROLADOR",
+};
+
+let adminVerificado = false;
 
 export default function Login({ onLoginSucesso }) {
   const [email, setEmail] = useState("");
@@ -21,6 +33,36 @@ export default function Login({ onLoginSucesso }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
+  // Garante automaticamente o cadastro do Controlador padrão ao iniciar a página
+  useEffect(() => {
+    if (adminVerificado) return;
+    adminVerificado = true;
+
+    async function garantirAdminPadrao() {
+      try {
+        const resp = await fetch(USUARIOS_URL);
+        if (!resp.ok) return;
+
+        const lista = await resp.json();
+        const jaExiste = Array.isArray(lista) && lista.some(
+          (u) => String(u.email ?? "").toLowerCase() === ADMIN_PADRAO.email
+        );
+
+        if (!jaExiste) {
+          await fetch(USUARIOS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(ADMIN_PADRAO),
+          });
+        }
+      } catch {
+        // Ignora silenciosamente se o back-end ainda estiver subindo
+      }
+    }
+
+    garantirAdminPadrao();
+  }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (carregando) return;
@@ -29,20 +71,31 @@ export default function Login({ onLoginSucesso }) {
     setCarregando(true);
 
     try {
-      // Simulação de 2s da API
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const resposta = await fetch(`${USUARIOS_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          senha,
+        }),
+      });
 
-      const senhaCorreta = senha === "123456";
-
-      if (!senhaCorreta) {
-        setErro("Senha incorreta. Tente novamente.");
-        return;
+      if (!resposta.ok) {
+        const detalhe = await resposta.json().catch(() => null);
+        throw new Error(detalhe?.message || "E-mail ou senha incorretos.");
       }
 
-      // Avisa o App.jsx que o login deu certo
+      const usuario = await resposta.json();
+
+      if (usuario.status === "INATIVO") {
+        throw new Error("Este usuário está inativo. Contate o Controlador.");
+      }
+
       if (onLoginSucesso) {
-        onLoginSucesso();
+        onLoginSucesso(usuario);
       }
+    } catch (err) {
+      setErro(err.message || "Não foi possível autenticar no servidor.");
     } finally {
       setCarregando(false);
     }
@@ -51,7 +104,6 @@ export default function Login({ onLoginSucesso }) {
   return (
     <div className="container-fluid login-page">
       <div className="row g-0 min-vh-100">
-
         {/* Lado esquerdo */}
         <div className="col-md-6 d-flex flex-column justify-content-center align-items-center login-left">
           <img
@@ -79,9 +131,12 @@ export default function Login({ onLoginSucesso }) {
               id="email"
               type="email"
               className="login-input"
-              placeholder="operador@gmail.com"
+              placeholder="seuemail@drilltrack.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErro("");
+              }}
               required
             />
 
@@ -104,18 +159,13 @@ export default function Login({ onLoginSucesso }) {
                 required
               />
 
-              {/* Ícone Lucide para visualizar senha */}
               <button
                 type="button"
                 className="login-eye"
                 onClick={() => setMostrarSenha(!mostrarSenha)}
                 aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
               >
-                {mostrarSenha ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
+                {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
@@ -150,10 +200,6 @@ export default function Login({ onLoginSucesso }) {
                 "Entrar"
               )}
             </button>
-
-            <p className="login-register">
-              Não tem conta? <a href="#">Cadastre-se</a>
-            </p>
           </form>
         </div>
       </div>

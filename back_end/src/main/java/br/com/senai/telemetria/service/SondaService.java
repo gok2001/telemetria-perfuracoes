@@ -55,4 +55,17 @@ public class SondaService {
     public List<Sonda> listarSondas() {
         return sondaRepository.findAll();
     }
+
+    @Transactional
+    public Sonda alterarStatus(Integer id, String status) {
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("O status é obrigatório");
+        }
+
+        Sonda sonda = sondaRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Sonda não encontrada"));
+
+        sonda.setStatus(status.trim().toUpperCase());
+        return sondaRepository.save(sonda);
+    }
 }

@@ -20,3 +20,28 @@ body {
   background-color: var(--bg);
   min-height: 100vh;
 }
+
+/* ===== Barra de rolagem padrão para todo o sistema ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2f3942 #11181e;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #11181e;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #2f3942;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #b30e0e;
+}

@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
@@ -33,7 +34,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="GEOSOL - API de Telemetria Edge",
     description="Coleta dados da Serial do Arduino, particiona CSV por dia e calcula estatísticas.",
-    version="1.3.0",
+    version="1.4.0",
     lifespan=lifespan,
 )
 
@@ -159,6 +160,75 @@ def get_dashboard(
     return {
         "total_maquinas": len(maquinas_lista),
         "maquinas": maquinas_lista,
+    }
+
+
+@app.get("/api/dados-brutos")
+def get_dados_brutos(
+    limite: int = Query(default=2000, ge=1, le=20000),
+    machine_id: Optional[int] = Query(default=None),
+    data_inicio: Optional[str] = Query(default=None, description="YYYY-MM-DD"),
+    data_fim: Optional[str] = Query(default=None, description="YYYY-MM-DD"),
+):
+    """Varre todas as pastas diárias em dados/YYYY-MM-DD/dados_sonda.csv para a tabela de Dados Brutos."""
+    pasta_base = Path(getattr(storage, "base_dir", Path(__file__).resolve().parent / "dados"))
+    if not pasta_base.exists():
+        return {"total": 0, "dados": []}
+
+    arquivos_csv = sorted(pasta_base.glob("*/dados_sonda.csv"), reverse=True)
+    registros: List[Dict] = []
+
+    for arquivo in arquivos_csv:
+        pasta_dia = arquivo.parent.name
+        if data_inicio and pasta_dia < data_inicio:
+            continue
+        if data_fim and pasta_dia > data_fim:
+            continue
+
+        try:
+            df = pd.read_csv(arquivo)
+            if df.empty:
+                continue
+
+            if machine_id is not None and "machine_id" in df.columns:
+                df = df[df["machine_id"] == machine_id]
+
+            df = df.where(pd.notnull(df), None)
+
+            for idx, row in enumerate(df.iloc[::-1].to_dict(orient="records")):
+                m_id = row.get("machine_id")
+                try:
+                    m_num = int(m_id)
+                    equipamento = f"Sonda {m_num:02d}"
+                except (TypeError, ValueError):
+                    equipamento = "Sonda 01"
+
+                ts = str(row.get("timestamp") or "")
+                registros.append(
+                    {
+                        "id": f"{pasta_dia}-{idx}-{ts}",
+                        "timestamp": ts,
+                        "data_hora": formatar_data_hora(ts),
+                        "machine_id": m_id,
+                        "equipamento": equipamento,
+                        "vibracao": row.get("vibracao"),
+                        "temperatura": row.get("temperatura"),
+                        "profundidade": row.get("profundidade"),
+                        "rotacao": row.get("rotacao"),
+                    }
+                )
+
+                if len(registros) >= limite:
+                    break
+        except Exception:
+            continue
+
+        if len(registros) >= limite:
+            break
+
+    return {
+        "total": len(registros),
+        "dados": registros,
     }
 
 

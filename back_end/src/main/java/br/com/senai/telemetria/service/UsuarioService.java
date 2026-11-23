@@ -72,4 +72,28 @@ public class UsuarioService {
 
         return usuarioRepository.save(usuario);
     }
+
+    @Transactional(readOnly = true)
+    public Usuario autenticar(String email, String senha) {
+        if (email == null || email.isBlank() || senha == null || senha.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail e senha são obrigatórios");
+        }
+
+        String emailNormalizado = email.trim().toLowerCase(Locale.ROOT);
+
+        Usuario usuario = usuarioRepository.findAll().stream()
+            .filter(u -> u.getEmail() != null && u.getEmail().equalsIgnoreCase(emailNormalizado))
+            .findFirst()
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-mail ou senha incorretos"));
+
+        if (usuario.getStatus() == StatusUsuario.INATIVO) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário inativo. Contate o Controlador.");
+        }
+
+        if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-mail ou senha incorretos");
+        }
+
+        return usuario;
+    }
 }

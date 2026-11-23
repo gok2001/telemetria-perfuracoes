@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/telemetria?sslMode=DISABLED&allowPublicKeyRetrieval=true}
-    username: ${DB_USER:telemetria}
-    password: ${DB_PASSWORD}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
 
   jpa:
     hibernate:

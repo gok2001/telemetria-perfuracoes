@@ -53,4 +53,13 @@ public class SondaController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<SondaResponse> alterarStatus(
+            @PathVariable Integer id,
+            @RequestBody java.util.Map<String, String> body) {
+
+        Sonda sonda = sondaService.alterarStatus(id, body.get("status"));
+        return ResponseEntity.ok(SondaResponse.fromEntity(sonda));
+    }
 }

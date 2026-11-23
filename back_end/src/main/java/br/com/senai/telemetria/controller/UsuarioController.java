@@ -53,4 +53,10 @@ public class UsuarioController {
 
         return ResponseEntity.ok(UsuarioResponse.fromEntity(usuario));
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<UsuarioResponse> login(@RequestBody java.util.Map<String, String> body) {
+        var usuario = usuarioService.autenticar(body.get("email"), body.get("senha"));
+        return ResponseEntity.ok(UsuarioResponse.fromEntity(usuario));
+    }
 }
