@@ -13,21 +13,28 @@ const ROTAS = {
 };
 
 export const API_OPERACOES_CONFIGURADA = Boolean(API_URL);
-export const STATUS_OPERACOES = ["Operando", "Manutenção", "Desligado"];
+
+export const STATUS_OPERACOES = ["Operando", "Manutenção", "Finalizado"];
 
 const TEMPO_LIMITE_INATIVIDADE_MS = 10000; // 10 segundos sem dados = Inativa
 const codigosEmCadastro = new Set();
 
+// Converte os status do Front-End para o padrão do Back-End.
 const STATUS_PARA_ENUM = {
   Operando: "OPERANDO",
   Manutenção: "MANUTENCAO",
+  Finalizado: "DESLIGADO",
   Desligado: "DESLIGADO",
 };
 
 function endereco(rota) {
-  return `${API_URL}/${String(rota).replace(/^\/+/, "")}`;
+  if (!API_OPERACOES_CONFIGURADA) {
+    throw new Error("Configure VITE_API_URL no arquivo .env.");
+  }
+  return `${API_URL}${rota.startsWith("/") ? rota : `/${rota}`}`;
 }
 
+// Realiza as requisições para a API.
 async function requisitar(rota, opcoes = {}) {
   let resposta;
   try {
@@ -39,7 +46,11 @@ async function requisitar(rota, opcoes = {}) {
 
   if (!resposta.ok) {
     const detalhe = await resposta.json().catch(() => null);
-    throw new Error(detalhe?.message || `API respondeu HTTP ${resposta.status} na rota ${rota}.`);
+    throw new Error(
+      detalhe?.message ||
+      detalhe?.detail ||
+      `API respondeu HTTP ${resposta.status} na rota ${rota}.`
+    );
   }
 
   if (resposta.status === 204) return null;
@@ -167,6 +178,7 @@ export async function sincronizarSondasComTelemetria(sondasExistentes = []) {
   }
 }
 
+// Converte os status recebidos da API.
 function statusParaExibicao(valor) {
   const chave = String(valor ?? "")
     .trim()
@@ -176,10 +188,11 @@ function statusParaExibicao(valor) {
 
   if (chave === "OPERANDO") return "Operando";
   if (chave === "MANUTENCAO") return "Manutenção";
-  if (chave === "DESLIGADO" || chave === "DESLIGADA") return "Desligado";
+  if (chave === "DESLIGADO" || chave === "DESLIGADA") return "Finalizado";
   return String(valor ?? "").trim();
 }
 
+// Busca os operadores ativos cadastrados no banco.
 export async function buscarOperadores({ signal } = {}) {
   const resposta = await requisitar(ROTAS.usuarios, { signal });
   const lista = extrairLista(resposta, "usuarios");
@@ -193,6 +206,7 @@ export async function buscarOperadores({ signal } = {}) {
     .filter((item) => item.id !== null && item.id !== undefined && item.nome);
 }
 
+// Busca as sondas cadastradas no banco e sincroniza com a telemetria.
 export async function buscarSondas({ signal } = {}) {
   let resposta = await requisitar(ROTAS.sondas, { signal });
   let lista = extrairLista(resposta, "sondas");
@@ -222,6 +236,7 @@ export async function buscarSondas({ signal } = {}) {
     .filter((item) => item.id !== null && item.id !== undefined);
 }
 
+// Formata o nome do equipamento.
 export function rotuloSonda(sonda) {
   const estado = sonda.ativa ? "Ativa" : "Inativa";
   return sonda.codigo
@@ -229,6 +244,7 @@ export function rotuloSonda(sonda) {
     : `${sonda.nome} — ID ${sonda.id} (${estado})`;
 }
 
+// Busca todas as operações e seus respectivos horários.
 export async function buscarOperacoes({ signal } = {}) {
   const resposta = await requisitar(ROTAS.operacoes, { signal });
   const lista = extrairLista(resposta, "operacoes");
@@ -247,13 +263,14 @@ export async function buscarOperacoes({ signal } = {}) {
     .sort((a, b) => Number(b.id) - Number(a.id));
 }
 
+// Registra uma nova operação.
 export async function registrarNovaOperacao({ operadorId, sondaId, status }) {
   const statusEnum = STATUS_PARA_ENUM[status];
   if (!operadorId || !sondaId || !statusEnum) {
     throw new Error("Selecione um operador, uma sonda e um status válidos.");
   }
 
-  await requisitar(ROTAS.operacoes, {
+  return requisitar(ROTAS.operacoes, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -262,6 +279,15 @@ export async function registrarNovaOperacao({ operadorId, sondaId, status }) {
       status: statusEnum,
     }),
   });
+}
 
-  return true;
+// Finaliza uma operação existente.
+export async function finalizarOperacao(operacaoId) {
+  return requisitar(`${ROTAS.operacoes}/${operacaoId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      status: "DESLIGADO",
+    }),
+  });
 }

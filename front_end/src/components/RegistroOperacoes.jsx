@@ -8,12 +8,24 @@ import {
   buscarSondas,
   buscarOperacoes,
   registrarNovaOperacao,
+  finalizarOperacao,
   rotuloSonda,
 } from "../services/registroOperacoesService";
 import "../styles/dadosBrutos.css";
 import "../styles/RegistroOperacoes.css";
 
 const HISTORICO_POR_PAGINA = 6;
+
+function formatarDataHora(valor) {
+  if (!valor) return "—";
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return "Data indisponível";
+  return data.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+}
 
 function normalizarBusca(valor) {
   return String(valor ?? "")
@@ -25,19 +37,28 @@ function normalizarBusca(valor) {
 
 function classeStatus(status) {
   const chave = normalizarBusca(status);
-  return ["operando", "manutencao", "desligado"].includes(chave)
+  return ["operando", "manutencao", "finalizado"].includes(chave)
     ? `ro-status--${chave}`
     : "ro-status--indefinido";
 }
 
-function FormularioRegistro({ operadores, sondas, erroCadastros, onFechar, onRegistrar }) {
+function FormularioRegistro({ operadores, sondas, registros, erroCadastros, onFechar, onRegistrar }) {
   const [operadorSelecionado, setOperadorSelecionado] = useState("");
   const [sondaSelecionada, setSondaSelecionada] = useState("");
   const [status, setStatus] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
 
-  const disponivel = API_OPERACOES_CONFIGURADA && operadores.length > 0 && sondas.length > 0;
+  const operadoresDisponiveis = status === "Finalizado"
+    ? Array.from(new Map([
+        ...operadores.map((p) => [String(p.id), p]),
+        ...registros
+          .filter((r) => !r.dataHoraFim && r.operadorId != null)
+          .map((r) => [String(r.operadorId), { id: r.operadorId, nome: r.operadorNome || `Operador ${r.operadorId}` }])
+      ]).values())
+    : operadores;
+
+  const disponivel = API_OPERACOES_CONFIGURADA && operadoresDisponiveis.length > 0 && sondas.length > 0;
 
   useEffect(() => {
     function fecharComEsc(evento) {
@@ -49,7 +70,7 @@ function FormularioRegistro({ operadores, sondas, erroCadastros, onFechar, onReg
 
   async function enviar(evento) {
     evento.preventDefault();
-    const operador = operadores.find((item) => String(item.id) === operadorSelecionado);
+    const operador = operadoresDisponiveis.find((item) => String(item.id) === operadorSelecionado);
     const sonda = sondas.find((item) => String(item.id) === sondaSelecionada);
 
     if (!operador || !sonda || !STATUS_OPERACOES.includes(status)) {
@@ -89,10 +110,10 @@ function FormularioRegistro({ operadores, sondas, erroCadastros, onFechar, onReg
               value={operadorSelecionado}
               onChange={(e) => { setOperadorSelecionado(e.target.value); setErro(""); }}
               required
-              disabled={enviando || operadores.length === 0}
+              disabled={enviando || operadoresDisponiveis.length === 0}
             >
               <option value="" disabled>Operador</option>
-              {operadores.map((item) => (
+              {operadoresDisponiveis.map((item) => (
                 <option key={String(item.id)} value={String(item.id)}>{item.nome}</option>
               ))}
             </select>
@@ -208,48 +229,60 @@ export default function RegistroOperacoes() {
     const operadoresPorId = new Map(operadores.map((p) => [String(p.id), p.nome]));
     const anteriores = [];
 
+    const pertenceASonda = (registro, sonda) => {
+      if (registro.sondaId !== null && registro.sondaId !== undefined) {
+        return String(registro.sondaId) === String(sonda.id);
+      }
+      return Boolean(registro.sondaNome) &&
+        normalizarBusca(registro.sondaNome) === normalizarBusca(sonda.nome);
+    };
+
     const atuais = sondasOrdenadas.map((sonda) => {
       const operacoesDaSonda = registros
         .map((registro, indiceOriginal) => ({ registro, indiceOriginal }))
-        .filter(({ registro }) => {
-          if (registro.sondaId !== null && registro.sondaId !== undefined) {
-            return String(registro.sondaId) === String(sonda.id);
-          }
-          return Boolean(registro.sondaNome) &&
-            normalizarBusca(registro.sondaNome) === normalizarBusca(sonda.nome);
-        });
+        .filter(({ registro }) => pertenceASonda(registro, sonda));
 
-      const ultima = operacoesDaSonda[0]?.registro;
-      const ultimaFoiFinalizada = normalizarBusca(ultima?.status) === "finalizado" ||
-        normalizarBusca(ultima?.status) === "finalizada";
-      const operacaoAtual = ultimaFoiFinalizada ? null : ultima;
-      const indiceHistorico = operacaoAtual ? 1 : 0;
+      const operacaoAtual = operacoesDaSonda.find(
+        ({ registro }) =>
+          !registro.dataHoraFim &&
+          !["finalizado", "finalizada", "desligado", "desligada"].includes(normalizarBusca(registro.status))
+      )?.registro;
 
-      operacoesDaSonda.slice(indiceHistorico).forEach(({ registro, indiceOriginal }) => {
-        anteriores.push({
-          chave: `${sonda.id}-${registro.id ?? indiceOriginal}-${indiceOriginal}`,
-          indiceOriginal,
-          sonda,
-          operadorNome: operadoresPorId.get(String(registro.operadorId)) ||
-            registro.operadorNome || "Não informado",
-          statusOriginal: registro.status || "Não informado",
-          statusHistorico: "Finalizado",
+      operacoesDaSonda
+        .filter(({ registro }) => registro !== operacaoAtual)
+        .forEach(({ registro, indiceOriginal }) => {
+          anteriores.push({
+            chave: `${sonda.id}-${registro.id ?? indiceOriginal}-${indiceOriginal}`,
+            indiceOriginal,
+            sonda,
+            operadorNome: registro.operadorNome ||
+              operadoresPorId.get(String(registro.operadorId)) || "Não informado",
+            statusHistorico: "Finalizado",
+            dataHoraInicio: registro.dataHoraInicio,
+            dataHoraFim: registro.dataHoraFim,
+          });
         });
-      });
 
       return {
         id: String(sonda.id),
         sonda,
+        operacaoId: operacaoAtual?.id,
+        operadorId: operacaoAtual?.operadorId,
         nomeOperador: operacaoAtual
-          ? operadoresPorId.get(String(operacaoAtual.operadorId)) ||
-            operacaoAtual.operadorNome || "Não informado"
+          ? operacaoAtual.operadorNome || operadoresPorId.get(String(operacaoAtual.operadorId)) || "Não informado"
           : "Nenhum operador responsável",
         status: operacaoAtual?.status || "",
         temOperacao: Boolean(operacaoAtual),
       };
     });
 
-    anteriores.sort((a, b) => a.indiceOriginal - b.indiceOriginal);
+    anteriores.sort((a, b) => {
+      if (a.dataHoraFim && b.dataHoraFim) {
+        return new Date(b.dataHoraFim) - new Date(a.dataHoraFim);
+      }
+      return a.indiceOriginal - b.indiceOriginal;
+    });
+
     return { cards: atuais, historico: anteriores };
   }, [operadores, sondasOrdenadas, registros]);
 
@@ -289,10 +322,33 @@ export default function RegistroOperacoes() {
   }
 
   async function salvar(dados) {
-    await registrarNovaOperacao(dados);
+    const registrosAtualizados = await buscarOperacoes();
+    const operacaoAtual = registrosAtualizados.find(
+      (registro) =>
+        String(registro.sondaId) === String(dados.sondaId) &&
+        !registro.dataHoraFim &&
+        !["finalizado", "finalizada", "desligado", "desligada"].includes(normalizarBusca(registro.status))
+    );
+
+    if (dados.status === "Finalizado") {
+      if (!operacaoAtual) {
+        throw new Error("Esta sonda não possui uma operação em andamento.");
+      }
+      if (String(operacaoAtual.operadorId) !== String(dados.operadorId)) {
+        throw new Error("Selecione o operador responsável pela operação atual.");
+      }
+      await finalizarOperacao(operacaoAtual.id);
+      setSucesso("Operação finalizada com sucesso.");
+    } else {
+      if (operacaoAtual) {
+        throw new Error("Finalize a operação atual antes de iniciar outra.");
+      }
+      await registrarNovaOperacao(dados);
+      setSucesso("Operação registrada com sucesso.");
+    }
+
     setModalAberto(false);
     setPagina(1);
-    setSucesso("");
     setRecarregar((n) => n + 1);
   }
 
@@ -494,6 +550,14 @@ export default function RegistroOperacoes() {
                         <span>Equipamento</span><strong>{rotuloSonda(item.sonda)}</strong>
                       </div>
                       <div className="ro-card__linha">
+                        <span>Início da operação</span>
+                        <strong>{formatarDataHora(item.dataHoraInicio)}</strong>
+                      </div>
+                      <div className="ro-card__linha">
+                        <span>Finalização da operação</span>
+                        <strong>{formatarDataHora(item.dataHoraFim)}</strong>
+                      </div>
+                      <div className="ro-card__linha">
                         <span>Situação do registro</span>
                         <strong className="ro-status ro-status--finalizado">{item.statusHistorico}</strong>
                       </div>
@@ -520,6 +584,7 @@ export default function RegistroOperacoes() {
         <FormularioRegistro
           operadores={operadores}
           sondas={sondasOrdenadas}
+          registros={registros}
           erroCadastros={erroCadastros}
           onFechar={() => setModalAberto(false)}
           onRegistrar={salvar}
